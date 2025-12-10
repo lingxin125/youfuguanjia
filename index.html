@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>邮付管家 - 显化版</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Config & Styles -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        postal: {
+                            DEFAULT: '#11A64A', // Updated Postal Green
+                            dark: '#388E3C',
+                            light: '#81C784',
+                            bg: '#F0FDF4', // Very light green bg
+                            fade: 'rgba(76, 163, 84, 0.08)', // Subtle gradient start
+                        },
+                        glass: {
+                            border: 'rgba(255, 255, 255, 0.6)',
+                            surface: 'rgba(255, 255, 255, 0.85)',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Noto Sans SC', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                        'glow': '0 4px 20px rgba(76, 163, 84, 0.15)',
+                        'card': '0 2px 12px rgba(0, 0, 0, 0.03)',
+                    },
+                    animation: {
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-3px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+            background-color: #ffffff;
+            background-image: none;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            box-shadow: 0 4px 24px -1px rgba(0, 0, 0, 0.05);
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:active {
+            transform: scale(0.98);
+        }
+
+        /* Mobile Container */
+        .mobile-container {
+            width: 375px;
+            height: 812px;
+            /* 深色渐变色 */
+            /* background: #F0FDF4;
+            background-image: linear-gradient(180deg, rgba(17, 166, 74, 0.25) 0%, rgba(240, 253, 244, 0.3) 100%); */
+
+            /* 浅色渐变色 */
+            background: #F8FAFC; 
+            background-image: linear-gradient(180deg, rgba(76, 163, 84, 0.08) 0%, rgba(255, 255, 255, 0) 400px);
+            border-radius: 40px;
+            border: 0;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.15),
+                inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Hide Scrollbar */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Tab Transition */
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-in-out;
+            height: 100%;
+            overflow-y: auto;
+            padding-bottom: 100px; /* Space for nav */
+        }
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+        }
+
+        /* Chart Lines */
+        .chart-line {
+            fill: none;
+            stroke: #11A64A;
+            stroke-width: 2;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+            stroke-dasharray: 100;
+            stroke-dashoffset: 100;
+            animation: drawLine 2s ease-out forwards;
+        }
+        @keyframes drawLine {
+            to { stroke-dashoffset: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Device Simulator -->
+    <div class="mobile-container">
+        
+        <!-- Status Bar -->
+        <div class="h-12 w-full flex justify-between items-end px-5 pb-2 z-50 select-none text-white font-medium text-sm bg-black">
+            <span>9:41</span>
+            <div class="flex gap-2 items-center">
+                <i class="fas fa-signal text-xs"></i>
+                <i class="fas fa-wifi text-xs"></i>
+                <i class="fas fa-battery-full text-xs"></i>
+            </div>
+        </div>
+
+        <!-- Custom Navigation Bar -->
+        <div class="flex items-center justify-between shrink-0 relative select-none" style="height: 44px; background-color: transparent; margin-top: 8px; padding: 0 15px;">
+            <!-- Left Placeholder (Balance) -->
+            <div class="w-[87px]"></div>
+
+            <!-- Title -->
+            <div class="absolute left-1/2 transform -translate-x-1/2 text-gray-800 font-medium text-[16px]" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                邮付管家
+            </div>
+
+            <!-- Capsule Button (Simulated) -->
+            <div class="w-[87px] h-[32px] bg-white/40 rounded-full border border-gray-200/50 flex items-center justify-between px-3 box-border backdrop-blur-md shadow-sm">
+                <div class="flex-1 flex items-center justify-center cursor-pointer hover:opacity-70">
+                    <i class="fas fa-ellipsis-h text-gray-800 text-xs"></i>
+                </div>
+                <div class="w-[1px] h-[18px] bg-gray-300"></div>
+                <div class="flex-1 flex items-center justify-center cursor-pointer hover:opacity-70">
+                    <i class="far fa-dot-circle text-gray-800 text-sm"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 relative overflow-hidden">
+            
+            <!-- ================= Tab 1: 首页 (Home) ================= -->
+            <div id="tab-home" class="tab-content active no-scrollbar">
+                <!-- Header Section -->
+                <div class="px-4 pt-4 pb-4">
+                    
+
+                    <!-- Alert Banner -->
+                    <div class="glass-card p-1 mb-3 rounded-xl flex items-center gap-3 shadow-sm mx-0 rounded-none border-x-0">
+                        <div class="bg-amber-100 text-amber-500 p-2 rounded-md shrink-0 ml-4 flex items-center justify-center">
+                            <i class="fas fa-bullhorn text-xs leading-none"></i>
+                        </div>
+                        <div class="flex-1 overflow-hidden mr-4">
+                            <p class="text-[11px] text-gray-700 font-medium truncate">商户补贴包将于3天后到期，请及时续费。</p>
+                        </div>
+                        <i class="fas fa-times text-gray-400 text-xs mr-4"></i>
+                    </div>
+
+                    <!-- Waterfall / Masonry Layout for Core Features (Weighted) -->
+                    <div class="flex gap-3 mb-6">
+                        
+                        <!-- Left Column (Most Important: Incoming Account Opening) -->
+                        <div class="w-[55%] flex flex-col gap-3">
+                            <!-- Incoming Account Opening (Tall Card) -->
+                            <div class="backdrop-blur-xl border border-white/60 shadow-sm rounded-2xl p-4 relative overflow-hidden group animate-float hover:shadow-glow transition-shadow cursor-pointer h-full flex flex-col bg-gradient-to-br from-green-50 to-emerald-100 min-h-[220px]">
+                                <!-- Header: Icon & Tag -->
+                                <div class="flex justify-between items-start mb-2">
+                                    <div class="w-10 h-10 rounded-xl bg-postal text-white flex items-center justify-center shadow-lg shadow-postal/20">
+                                        <i class="fas fa-user-plus text-sm"></i>
+                                    </div>
+                                    <span class="text-[9px] font-bold text-postal bg-white/60 px-2 py-1 rounded-full border border-postal/10 flex items-center gap-1 h-fit">
+                                        <i class="fas fa-bolt text-[8px]"></i>
+                                        极速进件
+                                    </span>
+                                </div>
+
+                                <!-- Title & Description -->
+                                <div class="mb-3">
+                                    <h2 class="text-lg font-bold text-gray-800">进件开户</h2>
+                                    <p class="text-[11px] text-gray-600 mt-0.5 leading-tight">快速协助新商户入网</p>
+                                </div>
+                                
+                                <!-- Central "Today" Box -->
+                                <div class="bg-white/40 rounded-xl p-3 backdrop-blur-sm border border-white/40 shadow-sm flex flex-col items-center justify-center flex-1 mb-3 relative z-10">
+                                    <span class="text-[10px] font-medium text-gray-600 mb-0.5">今日进件</span>
+                                    <span class="text-4xl font-bold text-postal tracking-tight">12</span>
+                                </div>
+
+                                <!-- Bottom Row: Month & Year -->
+                                <div class="flex justify-between items-center px-2 relative z-10">
+                                    <div class="flex flex-col items-center flex-1">
+                                            <span class="text-[9px] text-gray-500 mb-0.5">本月累计进件</span>
+                                            <span class="text-sm font-bold text-gray-700">156</span>
+                                    </div>
+                                    <div class="w-px h-6 bg-gray-300/50"></div>
+                                    <div class="flex flex-col items-center flex-1">
+                                            <span class="text-[9px] text-gray-500 mb-0.5">本年累计进件</span>
+                                            <span class="text-sm font-bold text-gray-700">1,204</span>
+                                    </div>
+                                </div>
+
+                                <!-- Decorative Icon -->
+                                <div class="absolute -right-4 top-20 opacity-10 text-postal text-7xl transform -rotate-12 pointer-events-none">
+                                    <i class="fas fa-id-card"></i>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right Column (Secondary: Merchant & Transaction) -->
+                        <div class="w-[45%] flex flex-col gap-3">
+                            
+                            <!-- Merchant Management -->
+                            <div class="backdrop-blur-xl border border-white/60 shadow-sm rounded-2xl p-2.5 flex flex-col justify-between h-[48%] relative overflow-hidden cursor-pointer hover:shadow-md transition-all bg-gradient-to-br from-blue-50 to-blue-100">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-6 h-6 rounded-lg bg-white/60 text-blue-500 flex items-center justify-center text-xs shadow-sm">
+                                        <i class="fas fa-store"></i>
+                                    </div>
+                                    <h3 class="text-[12px] font-bold text-gray-800">商户管理</h3>
+                                </div>
+                                <p class="text-[10px] text-gray-600 mt-0.5 mb-1.5 leading-tight">管理查看商户信息</p>
+                                
+                                <!-- Metrics Container -->
+                                <div class="bg-white/50 backdrop-blur-sm rounded-xl p-2 mt-auto border border-white/40 shadow-sm relative z-10">
+                                    <div class="space-y-1">
+                                        <div class="flex justify-between items-center text-[10px]">
+                                            <span class="text-gray-600 font-medium">商户总数</span>
+                                            <span class="text-[11px] font-bold text-gray-800">2,341</span>
+                                        </div>
+                                        <div class="w-full bg-white/60 rounded-full h-1 my-1.5">
+                                            <div class="bg-blue-500 h-1 rounded-full shadow-[0_0_4px_rgba(59,130,246,0.3)]" style="width: 85%"></div>
+                                        </div>
+                                        <div class="flex justify-between items-center text-[10px]">
+                                            <span class=" text-gray-600 font-medium">活跃商户</span>
+                                            <span class=" text-[11px] font-bold   text-blue-600 ">1,980</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Decorative Icon -->
+                                <div class="absolute -right-2 -bottom-2 opacity-10 text-blue-500 text-5xl transform rotate-12 pointer-events-none">
+                                    <i class="fas fa-store"></i>
+                                </div>
+                            </div>
+
+                            <!-- Transaction Stats -->
+                            <div class="backdrop-blur-xl border border-white/60 shadow-sm rounded-2xl p-2.5 flex flex-col justify-between h-[48%] relative overflow-hidden cursor-pointer hover:shadow-md transition-all bg-gradient-to-br from-purple-50 to-purple-100">
+                                <div class="flex items-center gap-2 mb-1">
+                                    <div class="w-6 h-6 rounded-lg bg-white/60 text-purple-500 flex items-center justify-center text-xs shadow-sm">
+                                        <i class="fas fa-chart-pie"></i>
+                                    </div>
+                                    <h3 class="text-[12px] font-bold text-gray-800">交易统计</h3>
+                                </div>
+                                <p class="text-[10px] text-gray-600 mt-0.5 mb-1.5 leading-tight">商户交易分析统计</p>
+                                
+                                <!-- Metrics Container -->
+                                <div class="bg-white/50 backdrop-blur-sm rounded-xl p-2 mt-auto border border-white/40 shadow-sm relative z-10">
+                                    <div class="flex flex-col gap-1.5">
+                                        <div class="flex justify-between items-baseline">
+                                            <span class="text-[9px] text-gray-600 font-medium">本日交易</span>
+                                            <span class="text-[11px] font-bold text-gray-800">¥12,345</span>
+                                        </div>
+                                        <div class="w-full h-px bg-white/40"></div>
+                                        <div class="flex justify-between items-baseline">
+                                            <span class="text-[9px] text-gray-600 font-medium">本月交易</span>
+                                            <span class="text-[11px] font-bold text-gray-800">¥123,456</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Mini Chart -->
+                                <svg class="absolute bottom-0 left-0 w-full h-8 opacity-20" viewBox="0 0 100 40" preserveAspectRatio="none">
+                                    <path d="M0,35 Q20,30 40,15 T80,20 T100,5 V40 H0 Z" fill="#9333ea" />
+                                </svg>
+                            </div>
+
+                        </div>
+                    </div>
+
+                    <!-- Functional Grid (Common Functions) -->
+                    <div class="flex items-center justify-between mb-4 px-1">
+                        <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
+                            <span class="w-1 h-4 bg-postal rounded-full"></span>
+                            常用功能
+                        </h3>
+                        <!-- <button class="text-[10px] text-gray-400 hover:text-postal">编辑</button> -->
+                    </div>
+                    
+                    <div class="grid grid-cols-4 gap-y-5 gap-x-2">
+                        <!-- Item 1 -->
+                        <div class="flex flex-col items-center gap-1.5 group cursor-pointer">
+                            <div class="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg text-postal shadow-sm group-hover:-translate-y-1 transition-transform duration-300">
+                                <i class="fas fa-shop"></i>
+                            </div>
+                            <span class="text-[10px] font-medium text-gray-700">门店管理</span>
+                        </div>
+                        <!-- Item 2 -->
+                        <div class="flex flex-col items-center gap-1.5 group cursor-pointer">
+                            <div class="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg text-postal shadow-sm group-hover:-translate-y-1 transition-transform duration-300">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <span class="text-[10px] font-medium text-gray-700">码牌设备</span>
+                        </div>
+                        <!-- Item 3 -->
+                        <div class="flex flex-col items-center gap-1.5 group cursor-pointer">
+                            <div class="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg text-orange-500 shadow-sm group-hover:-translate-y-1 transition-transform duration-300">
+                                <i class="fas fa-percent"></i>
+                            </div>
+                            <span class="text-[10px] font-medium text-gray-700">费率政策</span>
+                        </div>
+                        <!-- Item 4 -->
+                        <div class="flex flex-col items-center gap-1.5 group cursor-pointer" onclick="window.location.href='marketing_tools.html'">
+                            <div class="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg text-emerald-600 shadow-sm group-hover:-translate-y-1 transition-transform duration-300">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <span class="text-[10px] font-medium text-gray-700">营销小工具</span>
+                        </div>
+                        <!-- Item 5 -->
+                        <div class="flex flex-col items-center gap-1.5 group cursor-pointer">
+                            <div class="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg text-purple-500 shadow-sm group-hover:-translate-y-1 transition-transform duration-300">
+                                <i class="fas fa-tasks"></i>
+                            </div>
+                            <span class="text-[10px] font-medium text-gray-700">审核中心</span>
+                        </div>
+                         <!-- Item 7 -->
+                         <div class="flex flex-col items-center gap-1.5 group cursor-pointer">
+                            <div class="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg text-gray-500 shadow-sm group-hover:-translate-y-1 transition-transform duration-300">
+                                <i class="fas fa-ellipsis-h"></i>
+                            </div>
+                            <span class="text-[10px] font-medium text-gray-700">更多应用</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ================= Tab 2: 任务 (Task) ================= -->
+            <div id="tab-audit" class="tab-content no-scrollbar">
+                <!-- Header -->
+                <div class="px-4 pt-6 pb-2">
+                    <!-- <h2 class="text-xl font-bold text-gray-800 mb-4">任务管理</h2> -->
+                    
+                    <!-- Task List (Vertical) -->
+                    <div class="flex flex-col gap-4 pb-6">
+                        
+                        <!-- Task 1: Switch Backup Channel -->
+                        <div class="glass-panel p-5 rounded-2xl relative overflow-hidden flex flex-col items-center text-center border border-white/60">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <!-- <div class="w-8 h-8 rounded-lg bg-postal/10 text-postal flex items-center justify-center text-sm">
+                                    <i class="fas fa-exchange-alt"></i>
+                                </div> -->
+                                <h3 class="text-lg font-bold text-gray-800">切换备用通道</h3>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed mb-4 px-2">客户经理可查看具体商户的备用通道信息，协助商户实名认证，并快速切换至备用通道。</p>
+                            <button class="w-full py-2.5 bg-postal text-white text-xs font-bold rounded-full shadow-sm hover:bg-postal-dark transition-colors">
+                                查看商户
+                            </button>
+                        </div>
+
+                        <!-- Task 2: Merge/Supplement Info -->
+                        <div class="glass-panel p-5 rounded-2xl relative overflow-hidden flex flex-col items-center text-center border border-white/60">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <!-- <div class="w-8 h-8 rounded-lg bg-postal/10 text-postal flex items-center justify-center text-sm">
+                                    <i class="fas fa-file-signature"></i>
+                                </div> -->
+                                <h3 class="text-lg font-bold text-gray-800">合并补充商户资料</h3>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed mb-4 px-2">客户经理可帮助合作商户完成资料信息补充。提交后请及时关注审核状态。</p>
+                            <button class="w-full py-2.5 bg-postal text-white text-xs font-bold rounded-full shadow-sm hover:bg-postal-dark transition-colors">
+                                补充资料
+                            </button>
+                        </div>
+
+                        <!-- Task 3: Visit Maintenance -->
+                        <div class="glass-panel p-5 rounded-2xl relative overflow-hidden flex flex-col items-center text-center border border-white/60">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <!-- <div class="w-8 h-8 rounded-lg bg-postal/10 text-postal flex items-center justify-center text-sm">
+                                    <i class="fas fa-walking"></i>
+                                </div> -->
+                                <h3 class="text-lg font-bold text-gray-800">走访维护商户任务</h3>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed mb-4 px-2">客户经理需查看下发的商户信息，核实商户情况进行标记或进一步完善商户信息。</p>
+                            <button class="w-full py-2.5 bg-postal text-white text-xs font-bold rounded-full shadow-sm hover:bg-postal-dark transition-colors">
+                                查看商户
+                            </button>
+                        </div>
+
+                        <!-- Task 4: Target Merchant Visit -->
+                        <div class="glass-panel p-5 rounded-2xl relative overflow-hidden flex flex-col items-center text-center border border-white/60">
+                            <div class="flex items-center justify-center gap-2 mb-2">
+                                <!-- <div class="w-8 h-8 rounded-lg bg-postal/10 text-postal flex items-center justify-center text-sm">
+                                    <i class="fas fa-crosshairs"></i>
+                                </div> -->
+                                <h3 class="text-lg font-bold text-gray-800">目标商户走访任务</h3>
+                            </div>
+                            <p class="text-[11px] text-gray-500 leading-relaxed mb-4 px-2">客户经理就近领取目标商户，进行商户走访与转化并记录走访资料。</p>
+                            <button class="w-full py-2.5 bg-postal text-white text-xs font-bold rounded-full shadow-sm hover:bg-postal-dark transition-colors">
+                                查看任务
+                            </button>
+                        </div>
+
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- ================= Tab 3: 通知 (Notification) ================= -->
+            <div id="tab-notification" class="tab-content no-scrollbar">
+                <div class="px-4 pt-6">
+                    
+                    <!-- Header with Tabs and Action -->
+                    <div class="flex items-center justify-between border-b border-gray-200/60 mb-4 relative">
+                        <!-- Left: Tabs -->
+                        <div class="flex gap-6">
+                            <!-- System Messages (Active) -->
+                            <button class="notify-tab-btn active relative pb-2 text-sm font-bold text-gray-800 transition-colors" onclick="switchNotifyTab('system', this)">
+                                系统通知
+                                <!-- Dot (Hidden when active) -->
+                                <span class="badge-dot hidden absolute -top-0.5 -right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                                <!-- Number (Shown when active) -->
+                                <span class="badge-num absolute -top-1.5 -right-3 min-w-[14px] h-[14px] leading-[14px] text-[9px] text-white bg-red-500 rounded-full text-center px-0.5">2</span>
+                                <div class="active-indicator absolute bottom-0 left-0 w-full h-0.5 bg-postal rounded-full transition-opacity"></div>
+                            </button>
+                            
+                            <!-- Merchant Notifications (Inactive) -->
+                            <button class="notify-tab-btn relative pb-2 text-sm font-medium text-gray-500 transition-colors hover:text-gray-700" onclick="switchNotifyTab('business', this)">
+                                业务通知
+                                <!-- Dot (Shown when inactive) -->
+                                <span class="badge-dot absolute -top-0.5 -right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+                                <!-- Number (Hidden when inactive) -->
+                                <span class="badge-num hidden absolute -top-1.5 -right-3 min-w-[14px] h-[14px] leading-[14px] text-[9px] text-white bg-red-500 rounded-full text-center px-0.5">5</span>
+                                <div class="active-indicator absolute bottom-0 left-0 w-full h-0.5 bg-postal rounded-full opacity-0 transition-opacity"></div>
+                            </button>
+                        </div>
+
+                        <!-- Right: Mark Read Button -->
+                        <button class="text-[11px] text-postal font-medium pb-2">全部已读</button>
+                    </div>
+                    
+                    <!-- System Notifications -->
+                    <div id="notify-system" class="notify-content space-y-3 animate-fade-in">
+                        
+                        <!-- System Notice 1 -->
+                        <div class="glass-panel rounded-xl p-4 relative overflow-hidden group hover:bg-white/80 transition-colors cursor-pointer">
+                            <div class="flex justify-between items-center mb-1 pb-2 border-b border-gray-100/60">
+                                <div class="flex items-center gap-1">
+                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 30C17.5504 30 18.7504 28.8 18.7504 27.2496H13.248C13.248 28.8 14.448 30 15.9984 30H16ZM25.024 21.0496V13.8992C25.024 9.59999 21.9744 5.99999 18 5.05119V4.15039C18 3.15039 17.4496 2.24959 16.4992 2.04959C15.1248 1.72479 14 2.77439 14 4.12479V5.07519C10.0256 5.99999 6.976 9.59999 6.976 13.8992V21.0512L4.2496 23.8512V25.2496H27.7504V23.8496L25.0256 21.0496H25.024Z" fill="#14A74D"/>
+                                    </svg>
+                                    <span class="font-bold text-gray-800 text-xs">系统通知</span>
+                                </div>
+                                <span class="text-[10px] text-gray-500 font-sans">2025-12-10 09:00:00</span>
+                            </div>
+                            <div class="mb-3">
+                                <h3 class="font-bold text-gray-800 text-sm mb-1.5">系统维护通知</h3>
+                                <p class="text-[11px] text-gray-600 leading-relaxed">系统将于今晚 02:00 - 04:00 进行例行维护，届时可能影响部分查询功能。</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="text-[11px] font-medium text-gray-800">查看详情</span>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-600"></i>
+                            </div>
+                        </div>
+
+                        <!-- System Notice 2 -->
+                        <div class="glass-panel rounded-xl p-4 relative overflow-hidden group hover:bg-white/80 transition-colors cursor-pointer">
+                            <div class="flex justify-between items-center mb-1 pb-2 border-b border-gray-100/60">
+                                <div class="flex items-center gap-1">
+                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 30C17.5504 30 18.7504 28.8 18.7504 27.2496H13.248C13.248 28.8 14.448 30 15.9984 30H16ZM25.024 21.0496V13.8992C25.024 9.59999 21.9744 5.99999 18 5.05119V4.15039C18 3.15039 17.4496 2.24959 16.4992 2.04959C15.1248 1.72479 14 2.77439 14 4.12479V5.07519C10.0256 5.99999 6.976 9.59999 6.976 13.8992V21.0512L4.2496 23.8512V25.2496H27.7504V23.8496L25.0256 21.0496H25.024Z" fill="#14A74D"/>
+                                    </svg>
+                                    <span class="font-bold text-gray-800 text-xs">系统通知</span>
+                                </div>
+                                <span class="text-[10px] text-gray-500 font-sans">2025-12-09 14:30:00</span>
+                            </div>
+                            <div class="mb-3">
+                                <h3 class="font-bold text-gray-800 text-sm mb-1.5">安全策略更新</h3>
+                                <p class="text-[11px] text-gray-600 leading-relaxed">我们更新了隐私政策和安全验证流程，请查阅最新文档。</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="text-[11px] font-medium text-gray-800">查看详情</span>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-600"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Business Notifications (Hidden by default) -->
+                    <div id="notify-business" class="notify-content space-y-3 hidden animate-fade-in">
+                        
+                        <!-- Business Notice 1 -->
+                        <div class="glass-panel rounded-xl p-4 relative overflow-hidden group hover:bg-white/80 transition-colors cursor-pointer">
+                            <div class="flex justify-between items-center mb-1 pb-2 border-b border-gray-100/60">
+                                <div class="flex items-center gap-1">
+                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 30C17.5504 30 18.7504 28.8 18.7504 27.2496H13.248C13.248 28.8 14.448 30 15.9984 30H16ZM25.024 21.0496V13.8992C25.024 9.59999 21.9744 5.99999 18 5.05119V4.15039C18 3.15039 17.4496 2.24959 16.4992 2.04959C15.1248 1.72479 14 2.77439 14 4.12479V5.07519C10.0256 5.99999 6.976 9.59999 6.976 13.8992V21.0512L4.2496 23.8512V25.2496H27.7504V23.8496L25.0256 21.0496H25.024Z" fill="#14A74D"/>
+                                    </svg>
+                                    <span class="font-bold text-gray-800 text-xs">业务通知</span>
+                                </div>
+                                <span class="text-[10px] text-gray-500 font-sans">2025-12-10 14:30:00</span>
+                            </div>
+                            <div class="mb-3">
+                                <h3 class="font-bold text-gray-800 text-sm mb-1.5">补贴即将到期</h3>
+                                <p class="text-[11px] text-gray-600 leading-relaxed">您的商户补贴包将于3天后到期，请及时前往活动页面进行续费。</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="text-[11px] font-medium text-gray-800">查看详情</span>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-600"></i>
+                            </div>
+                        </div>
+
+                        <!-- Business Notice 2 -->
+                        <div class="glass-panel rounded-xl p-4 relative overflow-hidden group hover:bg-white/80 transition-colors cursor-pointer">
+                            <div class="flex justify-between items-center mb-1 pb-2 border-b border-gray-100/60">
+                                <div class="flex items-center gap-1">
+                                    <svg class="w-4 h-4 shrink-0" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path d="M16 30C17.5504 30 18.7504 28.8 18.7504 27.2496H13.248C13.248 28.8 14.448 30 15.9984 30H16ZM25.024 21.0496V13.8992C25.024 9.59999 21.9744 5.99999 18 5.05119V4.15039C18 3.15039 17.4496 2.24959 16.4992 2.04959C15.1248 1.72479 14 2.77439 14 4.12479V5.07519C10.0256 5.99999 6.976 9.59999 6.976 13.8992V21.0512L4.2496 23.8512V25.2496H27.7504V23.8496L25.0256 21.0496H25.024Z" fill="#14A74D"/>
+                                    </svg>
+                                    <span class="font-bold text-gray-800 text-xs">业务通知</span>
+                                </div>
+                                <span class="text-[10px] text-gray-500 font-sans">2025-12-10 10:15:00</span>
+                            </div>
+                            <div class="mb-3">
+                                <h3 class="font-bold text-gray-800 text-sm mb-1.5">进件审核通过</h3>
+                                <p class="text-[11px] text-gray-600 leading-relaxed">商户“鲜丰水果”的进件申请已通过审核。</p>
+                            </div>
+                            <div class="flex justify-between items-center pt-1">
+                                <span class="text-[11px] font-medium text-gray-800">查看详情</span>
+                                <i class="fas fa-chevron-right text-[10px] text-gray-600"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+             <!-- ================= Tab 4: 我的 (Mine) ================= -->
+             <div id="tab-mine" class="tab-content no-scrollbar">
+                <div class="relative">
+                    <!-- Profile Header -->
+                    <div class="pt-8 pb-6 px-6 text-center">
+                         <div class="w-20 h-20 mx-auto rounded-full p-1 bg-white/50 backdrop-blur shadow-lg mb-3">
+                             <img src="https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=200&q=80" class="w-full h-full rounded-full object-cover">
+                         </div>
+                         <h2 class="text-lg font-bold text-gray-800">灵心</h2>
+                         <p class="text-xs text-gray-500 mt-0.5">184 3514 1411</p>
+                         
+                         <!-- Branch Name -->
+                         <div class="inline-flex items-center gap-1.5 mt-2 px-3 py-1 bg-postal/10 rounded-full border border-postal/20">
+                             <i class="fas fa-building text-postal text-[10px]"></i>
+                             <span class="text-[10px] font-medium text-postal">朝阳区建国路支行</span>
+                         </div>
+                         
+                         <!-- <div class="flex justify-center gap-4 mt-6">
+                             <div class="text-center">
+                                 <span class="block text-sm font-bold text-gray-800">12</span>
+                                 <span class="text-[10px] text-gray-400">今日进件</span>
+                             </div>
+                             <div class="w-px h-8 bg-gray-200"></div>
+                             <div class="text-center">
+                                 <span class="block text-sm font-bold text-gray-800">1,204</span>
+                                 <span class="text-[10px] text-gray-400">累计商户</span>
+                             </div>
+                         </div> -->
+                    </div>
+
+                    <!-- Menu List -->
+                    <div class="px-4 space-y-3">
+                        <div class="glass-panel rounded-xl overflow-hidden">
+                            <div class="p-3.5 flex items-center justify-between border-b border-gray-100 cursor-pointer hover:bg-white/50">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-postal/10 text-postal flex items-center justify-center text-xs"><i class="fas fa-key"></i></div>
+                                    <span class="text-xs font-medium text-gray-700">密码重置</span>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                            </div>
+                            <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/50">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center text-xs"><i class="fas fa-tasks"></i></div>
+                                    <span class="text-xs font-medium text-gray-700">工单管理</span>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                            </div>
+                        </div>
+
+                        <div class="glass-panel rounded-xl overflow-hidden">
+                             <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/50">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-7 h-7 rounded-lg bg-purple-50 text-purple-500 flex items-center justify-center text-xs"><i class="fas fa-headset"></i></div>
+                                    <span class="text-xs font-medium text-gray-700">联系客服</span>
+                                </div>
+                                <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                            </div>
+                        </div>
+
+                        <button class="w-full py-3.5 mt-4 text-red-500 text-xs font-medium glass-panel rounded-xl hover:bg-red-50 transition-colors">
+                            退出登录
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Tab Bar (Fixed) -->
+        <div class="h-[72px] bg-white absolute bottom-0 w-full z-50 flex items-center justify-around pb-4 px-2 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
+            <!-- Home Tab -->
+            <button class="nav-btn active flex flex-col items-center gap-1 p-2 w-16 transition-all duration-300" onclick="switchTab('home')">
+                <div class="icon-container text-lg mb-0.5 relative transition-transform duration-300">
+                    <i class="fas fa-home"></i>
+                    <div class="active-dot absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-postal rounded-full opacity-0 transition-opacity"></div>
+                </div>
+                <span class="text-[9px] font-medium">首页</span>
+            </button>
+
+            <!-- Audit Tab -->
+            <button class="nav-btn flex flex-col items-center gap-1 p-2 w-16 text-gray-400 transition-all duration-300 hover:text-postal/70" onclick="switchTab('audit')">
+                <div class="icon-container text-lg mb-0.5 relative transition-transform duration-300">
+                    <i class="fas fa-clipboard-check"></i>
+                    <div class="active-dot absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-postal rounded-full opacity-0 transition-opacity"></div>
+                </div>
+                <span class="text-[9px] font-medium">任务</span>
+            </button>
+
+            <!-- Notification Tab -->
+            <button class="nav-btn flex flex-col items-center gap-1 p-2 w-16 text-gray-400 transition-all duration-300 hover:text-postal/70" onclick="switchTab('notification')">
+                <div class="icon-container text-lg mb-0.5 relative transition-transform duration-300">
+                    <i class="fas fa-bell"></i>
+                    <!-- Main Badge -->
+                    <div class="absolute -top-1.5 -right-1.5 min-w-[14px] h-[14px] leading-[14px] text-[9px] text-white bg-red-500 rounded-full text-center px-0.5 border border-white">7</div>
+                    <div class="active-dot absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-postal rounded-full opacity-0 transition-opacity"></div>
+                </div>
+                <span class="text-[9px] font-medium">通知</span>
+            </button>
+
+            <!-- Mine Tab -->
+            <button class="nav-btn flex flex-col items-center gap-1 p-2 w-16 text-gray-400 transition-all duration-300 hover:text-postal/70" onclick="switchTab('mine')">
+                <div class="icon-container text-lg mb-0.5 relative transition-transform duration-300">
+                    <i class="fas fa-user"></i>
+                    <div class="active-dot absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-postal rounded-full opacity-0 transition-opacity"></div>
+                </div>
+                <span class="text-[9px] font-medium">我的</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Notification Sub-tab Switcher
+        function switchNotifyTab(type, btnElement) {
+            // 1. Reset all buttons
+            document.querySelectorAll('.notify-tab-btn').forEach(btn => {
+                btn.classList.remove('active', 'text-gray-800', 'font-bold');
+                btn.classList.add('text-gray-500', 'font-medium');
+                btn.querySelector('.active-indicator').classList.add('opacity-0');
+                
+                // Logic: Inactive -> Show Dot, Hide Number
+                const dot = btn.querySelector('.badge-dot');
+                const num = btn.querySelector('.badge-num');
+                if(dot) dot.classList.remove('hidden');
+                if(num) num.classList.add('hidden');
+            });
+            
+            // 2. Set active button
+            btnElement.classList.remove('text-gray-500', 'font-medium');
+            btnElement.classList.add('active', 'text-gray-800', 'font-bold');
+            btnElement.querySelector('.active-indicator').classList.remove('opacity-0');
+
+            // Logic: Active -> Hide Dot, Show Number
+            const activeDot = btnElement.querySelector('.badge-dot');
+            const activeNum = btnElement.querySelector('.badge-num');
+            if(activeDot) activeDot.classList.add('hidden');
+            if(activeNum) activeNum.classList.remove('hidden');
+
+            // 3. Handle Content Visibility
+            document.querySelectorAll('.notify-content').forEach(content => {
+                content.classList.add('hidden');
+                content.classList.remove('block');
+            });
+            
+            const targetContent = document.getElementById('notify-' + type);
+            if(targetContent) {
+                targetContent.classList.remove('hidden');
+                targetContent.classList.add('block');
+            }
+        }
+
+        function switchTab(tabId) {
+            // 1. Hide all contents
+            document.querySelectorAll('.tab-content').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // 2. Show selected content
+            const target = document.getElementById('tab-' + tabId);
+            if(target) target.classList.add('active');
+
+            // 3. Update Nav Buttons
+            const buttons = document.querySelectorAll('.nav-btn');
+            const navMap = {'home': 0, 'audit': 1, 'notification': 2, 'mine': 3};
+            const activeIndex = navMap[tabId];
+
+            buttons.forEach((btn, index) => {
+                const icon = btn.querySelector('.icon-container');
+                const dot = btn.querySelector('.active-dot');
+                
+                if (index === activeIndex) {
+                    // Active State
+                    btn.classList.remove('text-gray-400');
+                    btn.classList.add('text-postal');
+                    icon.classList.add('-translate-y-1');
+                    dot.classList.remove('opacity-0');
+                } else {
+                    // Inactive State
+                    btn.classList.add('text-gray-400');
+                    btn.classList.remove('text-postal');
+                    icon.classList.remove('-translate-y-1');
+                    dot.classList.add('opacity-0');
+                }
+            });
+        }
+    </script>
+</body>
+</html>

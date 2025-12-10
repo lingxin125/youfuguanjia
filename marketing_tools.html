@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>营销小工具 - 邮付管家</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <!-- Custom Config & Styles -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        postal: {
+                            DEFAULT: '#11A64A',
+                            dark: '#388E3C',
+                            light: '#81C784',
+                            bg: '#F0FDF4',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Poppins', 'Noto Sans SC', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glass': '0 8px 32px 0 rgba(31, 38, 135, 0.07)',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+            background-color: #ffffff;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* Mobile Container */
+        .mobile-container {
+            width: 375px;
+            height: 812px;
+            background: #F8FAFC; 
+            background-image: linear-gradient(180deg, rgba(76, 163, 84, 0.08) 0%, rgba(255, 255, 255, 0) 400px);
+            border-radius: 40px;
+            box-shadow: 
+                0 25px 50px -12px rgba(0, 0, 0, 0.15),
+                inset 0 0 0 1px rgba(0, 0, 0, 0.05);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s ease;
+        }
+        
+        .glass-card:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Mobile Device Simulator -->
+    <div class="mobile-container">
+        
+        <!-- Status Bar -->
+        <div class="h-12 w-full flex justify-between items-end px-5 pb-2 z-50 select-none text-white font-medium text-sm bg-black">
+            <span>9:42</span>
+            <div class="flex gap-2 items-center">
+                <i class="fas fa-signal text-xs"></i>
+                <i class="fas fa-wifi text-xs"></i>
+                <i class="fas fa-battery-full text-xs"></i>
+            </div>
+        </div>
+
+        <!-- Custom Navigation Bar -->
+        <div class="flex items-center justify-between shrink-0 relative select-none" style="height: 44px; background-color: transparent; margin-top: 8px; padding: 0 15px;">
+            <!-- Back Button -->
+            <div class="w-[87px] flex items-center">
+                <a href="index.html" class="flex items-center justify-center w-8 h-8 rounded-full bg-white/40 backdrop-blur-md border border-gray-200/50 hover:bg-white/60 transition-colors">
+                    <i class="fas fa-chevron-left text-gray-800 text-sm"></i>
+                </a>
+            </div>
+
+            <!-- Title -->
+            <div class="absolute left-1/2 transform -translate-x-1/2 text-gray-800 font-medium text-[16px]" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+                营销小工具
+            </div>
+
+            <!-- Right Placeholder (Capsule) -->
+            <div class="w-[87px] h-[32px] bg-white/40 rounded-full border border-gray-200/50 flex items-center justify-between px-3 box-border backdrop-blur-md shadow-sm">
+                <div class="flex-1 flex items-center justify-center cursor-pointer hover:opacity-70">
+                    <i class="fas fa-ellipsis-h text-gray-800 text-xs"></i>
+                </div>
+                <div class="w-[1px] h-[18px] bg-gray-300"></div>
+                <div class="flex-1 flex items-center justify-center cursor-pointer hover:opacity-70">
+                    <i class="far fa-dot-circle text-gray-800 text-sm"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Area -->
+        <div class="flex-1 relative overflow-hidden px-4 pt-6">
+            
+            <div class="flex flex-col gap-4">
+                
+                <!-- Item 1: Marketing Case Guidance -->
+                <div class="glass-card rounded-2xl p-4 flex items-center justify-between cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-green-50 text-green-500 flex items-center justify-center text-xl shadow-sm group-hover:scale-105 transition-transform">
+                            <i class="fas fa-lightbulb"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800 mb-1">营销案例指导</h3>
+                            <p class="text-[10px] text-gray-500">精选营销案例与实操指引</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                </div>
+
+                <!-- Item 2: Tap Data Dashboard -->
+                <div class="glass-card rounded-2xl p-4 flex items-center justify-between cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-blue-50 text-blue-500 flex items-center justify-center text-xl shadow-sm group-hover:scale-105 transition-transform">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800 mb-1">碰一下数据看板</h3>
+                            <p class="text-[10px] text-gray-500">展示支付宝碰一下商户交易统计数据</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                </div>
+
+                <!-- Item 3: Subsidy Calculator -->
+                <div class="glass-card rounded-2xl p-4 flex items-center justify-between cursor-pointer group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shadow-sm group-hover:scale-105 transition-transform">
+                            <i class="fas fa-calculator"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-gray-800 mb-1">补贴计算器</h3>
+                            <p class="text-[10px] text-gray-500">精准测算补贴额度，助力客户经理高效决策</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-300 text-xs"></i>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+</body>
+</html>
