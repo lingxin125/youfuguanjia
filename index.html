@@ -14,6 +14,9 @@
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+
     <!-- Custom Config & Styles -->
     <script>
         tailwind.config = {
@@ -42,16 +45,278 @@
                     },
                     animation: {
                         'float': 'float 6s ease-in-out infinite',
+                        'fade-in': 'fadeIn 0.5s ease-out',
                     },
                     keyframes: {
                         float: {
                             '0%, 100%': { transform: 'translateY(0)' },
                             '50%': { transform: 'translateY(-3px)' },
+                        },
+                        fadeIn: {
+                            '0%': { opacity: '0', transform: 'translateY(2px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' },
                         }
                     }
                 }
             }
         }
+
+        // Data View Switcher
+        /**
+         * Switches the main data view between Institution and Merchant.
+         * @param {string} view - The view to switch to ('institution' or 'merchant').
+         */
+        function switchDataView(view) {
+            const bg = document.getElementById('data-segment-bg');
+            const btnInst = document.getElementById('btn-data-institution');
+            const btnMerch = document.getElementById('btn-data-merchant');
+            const viewInst = document.getElementById('data-view-institution');
+            const viewMerch = document.getElementById('data-view-merchant');
+
+            if (view === 'institution') {
+                bg.style.transform = 'translateX(0)';
+                
+                btnInst.classList.add('font-bold', 'text-gray-800');
+                btnInst.classList.remove('font-medium', 'text-gray-500');
+                
+                btnMerch.classList.remove('font-bold', 'text-gray-800');
+                btnMerch.classList.add('font-medium', 'text-gray-500');
+                
+                viewInst.classList.remove('hidden');
+                viewMerch.classList.add('hidden');
+            } else {
+                bg.style.transform = 'translateX(100%)';
+                
+                btnInst.classList.remove('font-bold', 'text-gray-800');
+                btnInst.classList.add('font-medium', 'text-gray-500');
+                
+                btnMerch.classList.add('font-bold', 'text-gray-800');
+                btnMerch.classList.remove('font-medium', 'text-gray-500');
+                
+                viewInst.classList.add('hidden');
+                viewMerch.classList.remove('hidden');
+            }
+        }
+
+        // Ranking View Switcher
+        /**
+         * Switches the ranking column between District, City, and Province.
+         * @param {string} type - The ranking type ('district', 'city', 'province').
+         */
+        function switchRankingType(type) {
+            // Update Buttons
+            ['district', 'city', 'province'].forEach(t => {
+                const btn = document.getElementById(`btn-rank-${t}`);
+                if (btn) {
+                    if(t === type) {
+                        btn.className = "px-2.5 py-1 text-[10px] rounded-md font-bold text-white bg-postal shadow-sm transition-all";
+                    } else {
+                        btn.className = "px-2.5 py-1 text-[10px] rounded-md font-medium text-gray-500 hover:bg-white/50 transition-all";
+                    }
+                }
+            });
+
+            // Update Header
+            const labels = { district: '区排名', city: '市排名', province: '省排名' };
+            const headerEl = document.getElementById('ranking-column-header');
+            if (headerEl) headerEl.innerText = labels[type];
+
+            // Update Rows
+            document.querySelectorAll('.ranking-val').forEach(el => {
+                if(el.classList.contains(`ranking-${type}`)) {
+                    el.classList.remove('hidden');
+                    el.classList.add('animate-fade-in');
+                } else {
+                    el.classList.add('hidden');
+                    el.classList.remove('animate-fade-in');
+                }
+            });
+        }
+        /* ================= Filter Modal Logic ================= */
+        const categoryData = [
+            { name: '商户性质', tags: ['个体工商户', '企业商户', '小微商户', '事业单位'] },
+            { name: '营业场所', tags: ['主城区', '开发区', '乡镇网点', '商业中心', '农村地区'] },
+            { name: '行业分类', tags: ['餐饮美食', '零售百货', '休闲娱乐', '生活服务', '酒店住宿', '医药健康'] },
+            { name: '项目类商户', tags: ['智慧校园', '智慧医院', '智慧园区', '智慧食堂', '智慧景区'] }
+        ];
+
+        let selectedCategory = 'all'; // Default to 'all'
+
+        // Initialize Options
+        function initFilterOptions() {
+            const container = document.getElementById('filter-category-options');
+            if(container) {
+                // Add "All" button first
+                let html = `<button class="filter-chip active" onclick="selectCategory('all', this)">全部</button>`;
+                html += categoryData.map(item => `
+                    <button class="filter-chip" onclick="selectCategory('${item.name}', this)">${item.name}</button>
+                `).join('');
+                container.innerHTML = html;
+            }
+        }
+
+        // Toggle Modal Visibility
+        function toggleFilterModal() {
+            const modal = document.getElementById('filter-modal');
+            const backdrop = document.getElementById('filter-modal-backdrop');
+            const isHidden = modal.classList.contains('translate-y-full');
+
+            if (isHidden) {
+                // Show
+                backdrop.classList.remove('hidden');
+                // Force reflow
+                void backdrop.offsetWidth; 
+                backdrop.classList.remove('opacity-0');
+                
+                modal.classList.remove('translate-y-full');
+            } else {
+                // Hide
+                backdrop.classList.add('opacity-0');
+                modal.classList.add('translate-y-full');
+                
+                setTimeout(() => {
+                    backdrop.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // Select Category (Level 1)
+        function selectCategory(name, btn) {
+            // Toggle active state
+            const siblings = btn.parentElement.querySelectorAll('.filter-chip');
+            siblings.forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            
+            selectedCategory = name;
+            const tagSection = document.getElementById('filter-section-tags');
+
+            if (name === 'all') {
+                // Hide Tags section when "All" is selected
+                tagSection.classList.add('hidden');
+            } else {
+                // Show Tags
+                const category = categoryData.find(i => i.name === name);
+                const tagContainer = document.getElementById('filter-tag-options');
+                
+                // Add "All" tag button
+                let tagHtml = `<button class="filter-chip active" onclick="toggleChip(this)">全部</button>`;
+                tagHtml += category.tags.map(tag => `
+                    <button class="filter-chip" onclick="toggleChip(this)">${tag}</button>
+                `).join('');
+                
+                tagContainer.innerHTML = tagHtml;
+                tagSection.classList.remove('hidden');
+            }
+        }
+
+        // Toggle Chip (Generic)
+        function toggleChip(btn) {
+            const parent = btn.parentElement;
+            // Check if there is an "All" button in this group
+            const allBtn = Array.from(parent.children).find(c => c.textContent.trim() === '全部');
+            
+            if (allBtn) {
+                if (btn === allBtn) {
+                     // Clear others
+                    Array.from(parent.children).forEach(c => c !== btn && c.classList.remove('active'));
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.toggle('active');
+                    allBtn.classList.remove('active');
+                    if (parent.querySelectorAll('.active').length === 0) {
+                        allBtn.classList.add('active');
+                    }
+                }
+            } else {
+                // Just toggle (e.g. tags)
+                btn.classList.toggle('active');
+            }
+        }
+
+        // Reset Filters
+        function resetFilters() {
+            // Reset Category to 'all'
+            selectedCategory = 'all';
+            const categoryContainer = document.getElementById('filter-category-options');
+            if (categoryContainer) {
+                 Array.from(categoryContainer.children).forEach(c => {
+                     if (c.textContent.trim() === '全部') c.classList.add('active');
+                     else c.classList.remove('active');
+                 });
+            }
+            document.getElementById('filter-section-tags').classList.add('hidden');
+            
+            // Reset other groups (like Tier) with "All" button
+            document.querySelectorAll('#filter-modal .filter-chip').forEach(btn => {
+                const parent = btn.parentElement;
+                // Skip if it's inside category options (handled above)
+                if (parent.id === 'filter-category-options') return;
+                
+                const allBtn = Array.from(parent.children).find(c => c.textContent.trim() === '全部');
+                if (allBtn) {
+                    if (btn === allBtn) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                }
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initFilterOptions();
+        });
+
+        // Merchant Detail View Logic
+        function showMerchantDetail(element) {
+            // Show Overlay
+            const overlay = document.getElementById('merchant-detail-view');
+            if (overlay) {
+                overlay.classList.remove('hidden');
+                
+                // Update Header
+                const headerTitle = document.getElementById('header-title');
+                const headerLeft = document.getElementById('header-left');
+                
+                if (headerTitle) headerTitle.innerText = '商户详情';
+                
+                if (headerLeft) {
+                    headerLeft.innerHTML = `
+                        <div onclick="hideMerchantDetail()" class="w-8 h-8 flex items-center justify-center rounded-full active:bg-gray-100 cursor-pointer transition-colors">
+                            <i class="fas fa-chevron-left text-gray-800 text-lg"></i>
+                        </div>
+                    `;
+                }
+
+                // Resize charts to ensure they fill the width
+                // Use setTimeout to allow the layout to update after removing 'hidden'
+                setTimeout(() => {
+                    if (typeof assetsChart !== 'undefined' && assetsChart) {
+                        assetsChart.resize();
+                    }
+                    if (typeof transactionChart !== 'undefined' && transactionChart) {
+                        transactionChart.resize();
+                    }
+                }, 50);
+            }
+        }
+
+        function hideMerchantDetail() {
+            // Hide Overlay
+            const overlay = document.getElementById('merchant-detail-view');
+            if (overlay) {
+                overlay.classList.add('hidden');
+                
+                // Revert Header
+                const headerTitle = document.getElementById('header-title');
+                const headerLeft = document.getElementById('header-left');
+                
+                if (headerTitle) headerTitle.innerText = '邮付管家';
+                if (headerLeft) headerLeft.innerHTML = '';
+            }
+        }
+
     </script>
 
     <style>
@@ -146,6 +411,26 @@
         @keyframes drawLine {
             to { stroke-dashoffset: 0; }
         }
+        /* Filter Modal Styles */
+        .filter-chip {
+            padding: 6px 12px;
+            border-radius: 8px;
+            font-size: 11px;
+            font-weight: 500;
+            background-color: #F3F4F6;
+            color: #4B5563;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .filter-chip.active {
+            background-color: #F0FDF4;
+            color: #11A64A;
+            border-color: #11A64A;
+            font-weight: 700;
+        }
+        .shadow-glass-up {
+            box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -160,16 +445,17 @@
                 <i class="fas fa-signal text-xs"></i>
                 <i class="fas fa-wifi text-xs"></i>
                 <i class="fas fa-battery-full text-xs"></i>
-            </div>
+
+    </div>
         </div>
 
         <!-- Custom Navigation Bar -->
-        <div class="flex items-center justify-between shrink-0 relative select-none" style="height: 44px; background-color: transparent; margin-top: 8px; padding: 0 15px;">
+        <div id="main-header" class="flex items-center justify-between shrink-0 relative select-none z-[60]" style="height: 44px; background-color: transparent; margin-top: 8px; padding: 0 15px;">
             <!-- Left Placeholder (Balance) -->
-            <div class="w-[87px]"></div>
+            <div id="header-left" class="w-[87px] flex items-center"></div>
 
             <!-- Title -->
-            <div class="absolute left-1/2 transform -translate-x-1/2 text-gray-800 font-medium text-[16px]" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
+            <div id="header-title" class="absolute left-1/2 transform -translate-x-1/2 text-gray-800 font-medium text-[16px]" style="font-family: -apple-system, BlinkMacSystemFont, sans-serif;">
                 邮付管家
             </div>
 
@@ -183,6 +469,211 @@
                     <i class="far fa-dot-circle text-gray-800 text-sm"></i>
                 </div>
             </div>
+        </div>
+
+        <!-- Merchant Detail View (Overlay) -->
+        <div id="merchant-detail-view" class="absolute inset-0 top-[100px] z-[55] hidden flex flex-col overflow-hidden animate-fade-in" style="height: calc(100% - 100px); background: #F8FAFC; background-image: linear-gradient(180deg, rgba(76, 163, 84, 0.08) 0%, rgba(255, 255, 255, 0) 400px);">
+             <div class="flex-1 overflow-y-auto p-4 space-y-4 pb-10">
+                
+                <!-- 1. Basic Info -->
+                <div class="glass-panel rounded-2xl relative mb-4 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
+                    <!-- Floating Header -->
+                    <div class="px-4 py-3 bg-gradient-to-r from-blue-100/80 to-blue-50/20 flex items-center justify-between border-b border-blue-200/50 pl-16 relative rounded-t-2xl">
+                        <!-- Icon -->
+                        <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 transform-gpu -rotate-6 border-2 border-white subpixel-antialiased">
+                            <i class="fas fa-store drop-shadow-md"></i>
+                        </div>
+                        <span class="font-bold text-gray-800 text-sm ml-1">商户基本信息</span>
+                        <div class="flex text-yellow-400 text-xs">
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                            <i class="fas fa-star"></i>
+                        </div>
+                    </div>
+                    <!-- Content -->
+                    <div class="p-4 space-y-3 text-xs">
+                        <div class="flex justify-between items-center">
+                            <span class="text-gray-500 shrink-0 w-20">商户名称</span>
+                            <span class="text-gray-800 font-medium text-right">鲜丰水果连锁</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-blue-50/50 pt-2">
+                            <span class="text-gray-500 shrink-0 w-20">商户号</span>
+                            <span class="text-gray-800 font-sans font-medium text-right">60209745874</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-blue-50/50 pt-2">
+                            <span class="text-gray-500 shrink-0 w-20">负责人</span>
+                            <span class="text-gray-800 font-medium text-right">灵心</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-blue-50/50 pt-2">
+                            <span class="text-gray-500 shrink-0 w-20">联系电话</span>
+                            <span class="text-gray-800 font-sans font-medium text-right">18435141411</span>
+                        </div>
+                        <div class="flex justify-between items-start border-t border-blue-50/50 pt-2">
+                            <span class="text-gray-500 shrink-0 w-20">地址</span>
+                            <span class="text-gray-800 font-medium text-right break-words max-w-[70%]">杭州市西湖区文三路478号</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 2. Merchant Data -->
+                <div class="glass-panel rounded-2xl relative mb-4 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
+                    <div class="px-4 py-3 bg-gradient-to-r from-blue-100/80 to-blue-50/20 flex items-center justify-between border-b border-blue-200/50 pl-16 relative rounded-t-2xl">
+                        <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 transform-gpu -rotate-6 border-2 border-white subpixel-antialiased">
+                            <i class="fas fa-database drop-shadow-md"></i>
+                        </div>
+                        <span class="font-bold text-gray-800 text-sm ml-1">商户数据</span>
+                    </div>
+                    <div class="p-4 grid grid-cols-3 gap-2">
+                         <!-- Row 1: Amounts (Light Blue) -->
+                         <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                            <span class="text-[10px] text-gray-600 mb-1">本日交易金额</span>
+                            <span class="text-xs font-bold text-gray-800 font-sans">¥3667.1</span>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                            <span class="text-[10px] text-gray-600 mb-1">本月交易金额</span>
+                            <span class="text-xs font-bold text-gray-800 font-sans">¥35389.6</span>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                            <span class="text-[10px] text-gray-600 mb-1">本年交易金额</span>
+                            <span class="text-xs font-bold text-gray-800 font-sans">¥567834.73</span>
+                        </div>
+
+                        <!-- Row 2: Counts (Light Blue) -->
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                            <span class="text-[10px] text-gray-600 mb-1">本日交易笔数</span>
+                            <span class="text-xs font-bold text-gray-800 font-sans">138</span>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                            <span class="text-[10px] text-gray-600 mb-1">本月交易笔数</span>
+                            <span class="text-xs font-bold text-gray-800 font-sans">1316</span>
+                        </div>
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                            <span class="text-[10px] text-gray-600 mb-1">本年交易笔数</span>
+                            <span class="text-xs font-bold text-gray-800 font-sans">20842</span>
+                        </div>
+
+                        <!-- Row 3: Frequency (Light Blue, Full Width Row) -->
+                        <div class="col-span-3 grid grid-cols-2 gap-2">
+                             <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                                <span class="text-[10px] text-gray-600 mb-1">本月交易天数</span>
+                                <span class="text-xs font-bold text-gray-800">7天</span>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                                <span class="text-[10px] text-gray-600 mb-1 leading-tight">最近一次交易距今天数</span>
+                                <span class="text-xs font-bold text-gray-800">4天</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3. Warning Center -->
+                <div class="glass-panel rounded-2xl relative mb-4 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
+                    <div class="px-4 py-3 bg-gradient-to-r from-blue-100/80 to-blue-50/20 flex items-center justify-between border-b border-blue-200/50 pl-16 relative rounded-t-2xl">
+                        <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 transform-gpu -rotate-6 border-2 border-white subpixel-antialiased">
+                            <i class="fas fa-bell drop-shadow-md"></i>
+                        </div>
+                        <span class="font-bold text-gray-800 text-sm ml-1">预警数据</span>
+                    </div>
+                    <div class="p-4 grid grid-cols-3 gap-2">
+                         <!-- High Warning -->
+                        <div class="bg-red-50 border border-red-100 rounded-lg p-3 text-center flex flex-col justify-center h-16">
+                            <div class="text-xs font-bold text-red-500">高度关注</div>
+                            <div class="text-[10px] text-gray-600 mt-1">资料预警</div>
+                        </div>
+                        <!-- Medium Warning -->
+                        <div class="bg-orange-50 border border-orange-100 rounded-lg p-3 text-center flex flex-col justify-center h-16">
+                            <div class="text-xs font-bold text-orange-500">中度关注</div>
+                            <div class="text-[10px] text-gray-600 mt-1">交易预警</div>
+                        </div>
+                        <!-- Low Warning -->
+                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center flex flex-col justify-center h-16">
+                            <div class="text-xs font-bold text-blue-500">轻度关注</div>
+                            <div class="text-[10px] text-gray-600 mt-1">补贴预警</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 4. Other Portrait Data -->
+                <div class="glass-panel rounded-2xl relative mb-4 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
+                    <div class="px-4 py-3 bg-gradient-to-r from-blue-100/80 to-blue-50/20 flex items-center justify-between border-b border-blue-200/50 pl-16 relative rounded-t-2xl">
+                        <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 transform-gpu -rotate-6 border-2 border-white subpixel-antialiased">
+                            <i class="fas fa-id-card drop-shadow-md"></i>
+                        </div>
+                        <span class="font-bold text-gray-800 text-sm ml-1">商户资产数据</span>
+                    </div>
+                    <div class="p-4 grid grid-cols-3 gap-2">
+                        <div class="bg-blue-50/50 rounded-lg p-3 text-center">
+                            <div class="text-[10px] text-gray-600 mb-1">信用卡交易数</div>
+                            <div class="text-sm font-bold text-blue-600">0笔</div>
+                        </div>
+                        <div class="bg-blue-50/50 rounded-lg p-3 text-center">
+                            <div class="text-[10px] text-gray-600 mb-1">退款</div>
+                            <div class="text-sm font-bold text-blue-600">¥0.00</div>
+                        </div>
+                        <div class="bg-blue-50/50 rounded-lg p-3 text-center">
+                            <div class="text-[10px] text-gray-600 mb-1">撤单</div>
+                            <div class="text-sm font-bold text-blue-600">¥0.00</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 5. Assets & Costs Chart -->
+                <div class="glass-panel rounded-2xl relative mb-4 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
+                    <div class="px-4 py-3 bg-gradient-to-r from-blue-100/80 to-blue-50/20 flex items-center justify-between border-b border-blue-200/50 pl-16 relative rounded-t-2xl">
+                        <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 transform-gpu -rotate-6 border-2 border-white subpixel-antialiased">
+                            <i class="fas fa-wallet drop-shadow-md"></i>
+                        </div>
+                        <span class="font-bold text-gray-800 text-sm ml-1">商户资产与成本变动情况</span>
+                    </div>
+                    <div class="p-4">
+                        <!-- Tabs -->
+                        <div class="flex border-b border-gray-100 mb-4">
+                            <button class="flex-1 pb-2 text-xs font-medium chart-tab active text-blue-600 border-b-2 border-blue-600 transition-colors" onclick="switchAssetTab(this, 'assets')">资产变动</button>
+                            <button class="flex-1 pb-2 text-xs font-medium chart-tab text-gray-500 border-b-2 border-transparent transition-colors" onclick="switchAssetTab(this, 'costs')">成本变动</button>
+                        </div>
+    
+                        <!-- Stats -->
+                        <div class="grid grid-cols-3 gap-2 mb-4">
+                            <div class="bg-blue-50 rounded-lg p-2 text-center">
+                                <div class="text-[10px] text-gray-600 mb-1">本日净增</div>
+                                <div class="text-xs font-bold text-blue-600">¥5203.2</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-2 text-center">
+                                <div class="text-[10px] text-gray-600 mb-1">本月净增</div>
+                                <div class="text-xs font-bold text-blue-600">-¥112845.74</div>
+                            </div>
+                            <div class="bg-blue-50 rounded-lg p-2 text-center">
+                                <div class="text-[10px] text-gray-600 mb-1">本年净增</div>
+                                <div class="text-xs font-bold text-blue-600">¥132443.46</div>
+                            </div>
+                        </div>
+    
+                        <!-- Chart -->
+                        <div id="assets-chart" class="w-full h-48"></div>
+                    </div>
+                </div>
+
+                 <!-- 6. Transaction Data Chart -->
+                 <div class="glass-panel rounded-2xl relative mb-4 transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/10 group">
+                    <div class="px-4 py-3 bg-gradient-to-r from-blue-100/80 to-blue-50/20 flex items-center justify-between border-b border-blue-200/50 pl-16 relative rounded-t-2xl">
+                        <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-base shadow-lg shadow-blue-500/30 transform-gpu -rotate-6 border-2 border-white subpixel-antialiased">
+                            <i class="fas fa-chart-line drop-shadow-md"></i>
+                        </div>
+                        <span class="font-bold text-gray-800 text-sm ml-1">交易数据</span>
+                    </div>
+                    <div class="p-4">
+                        <!-- Tabs -->
+                        <div class="flex border-b border-gray-100 mb-4">
+                            <button class="flex-1 pb-2 text-xs font-medium chart-tab active text-blue-600 border-b-2 border-blue-600 transition-colors" onclick="switchTransactionTab(this, 'amount')">交易金额</button>
+                            <button class="flex-1 pb-2 text-xs font-medium chart-tab text-gray-500 border-b-2 border-transparent transition-colors" onclick="switchTransactionTab(this, 'count')">交易笔数</button>
+                        </div>
+    
+                        <!-- Chart -->
+                        <div id="transaction-chart" class="w-full h-48"></div>
+                    </div>
+                </div>
+
+             </div>
         </div>
 
         <!-- Main Content Area -->
@@ -391,127 +882,13 @@
                             <div class="w-12 h-12 glass-card rounded-2xl flex items-center justify-center text-lg text-gray-500 bg-gray-50 shadow-sm group-hover:-translate-y-1 transition-transform duration-300">
                                 <i class="fas fa-ellipsis-h"></i>
                             </div>
-                            <span class="text-[10px] font-medium text-gray-700">更多应用</span>
+                            <span class="text-[10px] font-medium text-gray-700">应用占位</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- ================= Tab 2: 数据 (Data) ================= -->
-            <div id="tab-audit" class="tab-content no-scrollbar">
-                <!-- Header -->
-                <div class="px-4 pt-6 pb-2">
-                    
-                    <!-- Data Cards List -->
-                    <div class="flex flex-col gap-6 pb-6 pt-2">
-                        
-                        <!-- Card 1: Institutional Data -->
-                        <div class="glass-panel rounded-2xl border border-white/60 shadow-sm relative">
-                            <!-- Header -->
-                            <div class="bg-gradient-to-br from-green-50 to-emerald-100 rounded-t-2xl h-12 flex items-center justify-between px-4 pl-20 relative">
-                                <!-- Floating Icon (Breaking out) -->
-                                <div class="absolute -top-4 left-4 w-12 h-12 bg-gradient-to-br from-emerald-400 to-postal rounded-xl shadow-lg flex items-center justify-center text-white text-xl border-2 border-white transform -rotate-3 z-10">
-                                    <i class="fas fa-building"></i>
-                                </div>
-                                <!-- Title -->
-                                <h3 class="text-gray-800 font-bold text-sm tracking-wide">机构画像数据</h3>
-                                <!-- Action -->
-                                <div class="flex items-center gap-1 text-gray-500 text-xs cursor-pointer hover:text-postal transition-colors">
-                                    <span>查看详情</span>
-                                    <i class="fas fa-chevron-right scale-75"></i>
-                                </div>
-                                <!-- Decor Dots -->
-                                <div class="absolute top-2 right-2 flex gap-0.5 opacity-30">
-                                    <div class="w-0.5 h-0.5 bg-gray-400 rounded-full"></div>
-                                    <div class="w-0.5 h-0.5 bg-gray-400 rounded-full"></div>
-                                    <div class="w-0.5 h-0.5 bg-gray-400 rounded-full"></div>
-                                </div>
-                            </div>
-
-                            <!-- Body -->
-                            <div class="p-5 bg-white/90 rounded-b-2xl">
-                                <div class="grid grid-cols-3 gap-y-4 gap-x-2 text-center">
-                                    <!-- Metric 1 (Full Width) -->
-                                    <div class=" border-b border-dashed border-gray-100 ">
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">1153</div>
-                                        <div class="text-[11px] text-gray-500">商户总数</div>
-                                    </div>
-                                    <!-- Metric 2 -->
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">890</div>
-                                        <div class="text-[11px] text-gray-500">活跃商户</div>
-                                    </div>
-                                    <!-- Metric 3 -->
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">680</div>
-                                        <div class="text-[11px] text-gray-500">本日有交易商户</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">720</div>
-                                        <div class="text-[11px] text-gray-500">本月有交易商户</div>
-                                    </div>
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">824</div>
-                                        <div class="text-[11px] text-gray-500">本年有交易商户</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Card 2: Merchant Data -->
-                        <div class="glass-panel rounded-2xl border border-white/60 shadow-sm relative">
-                            <!-- Header -->
-                            <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-t-2xl h-12 flex items-center justify-between px-4 pl-20 relative">
-                                <!-- Floating Icon (Breaking out) -->
-                                <div class="absolute -top-4 left-4 w-12 h-12 bg-gradient-to-br from-blue-400 to-blue-600 rounded-xl shadow-lg flex items-center justify-center text-white text-xl border-2 border-white transform -rotate-3 z-10">
-                                    <i class="fas fa-store"></i>
-                                </div>
-                                <!-- Title -->
-                                <h3 class="text-gray-800 font-bold text-sm tracking-wide">商户画像数据</h3>
-                                <!-- Action -->
-                                <div class="flex items-center gap-1 text-gray-500 text-xs cursor-pointer hover:text-blue-600 transition-colors">
-                                    <span >查看详情</span>
-                                    <i class="fas fa-chevron-right scale-75"></i>
-                                </div>
-                                <!-- Decor Dots -->
-                                <div class="absolute top-2 right-2 flex gap-0.5 opacity-30">
-                                    <div class="w-0.5 h-0.5 bg-gray-400 rounded-full"></div>
-                                    <div class="w-0.5 h-0.5 bg-gray-400 rounded-full"></div>
-                                    <div class="w-0.5 h-0.5 bg-gray-400 rounded-full"></div>
-                                </div>
-                            </div>
-
-                            <!-- Body -->
-                            <div class="p-5 bg-white/90 rounded-b-2xl">
-                                <div class="grid grid-cols-3 gap-y-5 gap-x-2 text-center">
-                                    <!-- Metric 1 -->
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">251</div>
-                                        <div class="text-[11px] text-gray-500">一星级商户</div>
-                                    </div>
-                                    <!-- Metric 2 -->
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">314</div>
-                                        <div class="text-[11px] text-gray-500">二星级商户</div>
-                                    </div>
-                                    <!-- Metric 3 -->
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">214</div>
-                                        <div class="text-[11px] text-gray-500">三星级商户</div>
-                                    </div>
-                                    <!-- Metric 4 -->
-                                    <div>
-                                        <div class="text-[16px] font-bold text-gray-800 font-sans mb-1">104</div>
-                                        <div class="text-[11px] text-gray-500">四星级以上商户</div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-
-                </div>
-            </div>
+            
 
             <!-- ================= Tab 3: 通知 (Notification) ================= -->
             <div id="tab-notification" class="tab-content no-scrollbar">
@@ -640,6 +1017,309 @@
                 </div>
             </div>
 
+
+            <!-- ================= Tab 2: 数据 (Data) ================= -->
+            <div id="tab-audit" class="tab-content no-scrollbar relative">
+                <!-- Sticky Segmented Control -->
+                <div class="px-4 pt-4 pb-2 sticky top-0 z-30 bg-[#f2f4f6]/95 backdrop-blur-sm transition-all duration-300" id="data-header">
+                     <div class="bg-gray-200/50 p-1 rounded-xl flex relative">
+                        <!-- Sliding Background -->
+                        <div id="data-segment-bg" class="absolute top-1 left-1 w-[calc(50%-4px)] h-[calc(100%-8px)] bg-white rounded-lg shadow-sm transition-all duration-300 ease-out transform translate-x-0"></div>
+                        
+                        <button class="flex-1 relative z-10 py-2 text-sm font-bold text-gray-800 transition-colors duration-300 text-center" onclick="switchDataView('institution')" id="btn-data-institution">
+                            机构数据
+                        </button>
+                        <button class="flex-1 relative z-10 py-2 text-sm font-medium text-gray-500 transition-colors duration-300 text-center" onclick="switchDataView('merchant')" id="btn-data-merchant">
+                            商户数据
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Content Container -->
+                <div class="px-4 pb-20 min-h-screen">
+                    
+                    <!-- View 1: Institution Profile -->
+                    <div id="data-view-institution" class="space-y-4 animate-fade-in">
+                        
+                        <!-- 1. Institution Basic Info Card -->
+                        <div class="glass-panel rounded-2xl p-3 relative overflow-hidden">
+                             <!-- Header Section -->
+                             <div class="relative flex items-start gap-3 mb-2 border-b border-gray-100/50 pb-2">
+                                <!-- Date Badge (Top Right) -->
+                                <div class="absolute top-0 right-0">
+                                    <span class="inline-flex items-center gap-1 text-[10px] font-medium text-white bg-postal px-2 py-0.5 rounded-full shadow-sm">
+                                        <i class="far fa-clock text-[9px]"></i>
+                                        <span class="font-sans">2025-11-12</span>
+                                    </span>
+                                </div>
+
+                                <div class="w-10 h-10 rounded-xl bg-postal/10 flex items-center justify-center shrink-0 border border-postal/20 shadow-sm">
+                                    <i class="fas fa-store text-postal text-lg"></i>
+                                </div>
+                                <div class="flex-1 min-w-0 pt-0.5">
+                                    <h3 class="text-gray-800 font-bold text-sm mb-0.5 truncate pr-20">镇江市三山营业所</h3>
+                                    <p class="text-[10px] text-gray-500">机构号: <span class="font-sans">32023663</span></p>
+                                </div>
+                             </div>
+                             
+                             <!-- Address Section -->
+                             <div class="flex items-center gap-2 text-gray-600 pl-1">
+                                 <i class="fas fa-map-marker-alt text-postal/60 text-[10px]"></i>
+                                 <span class="text-[10px] truncate w-full">镇江市丹徒区谷阳镇三山湖山路111号</span>
+                             </div>
+                        </div>
+
+                        <!-- 2. Institution Ranking -->
+                        <div class="glass-panel rounded-2xl relative mt-6">
+                            <!-- Header -->
+                            <div class="px-4 py-2 bg-gradient-to-r from-postal/10 to-emerald-100/40 flex items-center justify-between border-b border-postal/20 pl-16 relative rounded-t-2xl">
+                                <!-- Floating Icon -->
+                                <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-postal text-white flex items-center justify-center text-base shadow-lg shadow-emerald-500/30 transform-gpu -rotate-6 border-2 border-white transition-transform hover:-translate-y-1 subpixel-antialiased">
+                                    <i class="fas fa-chart-bar drop-shadow-md"></i>
+                                </div>
+                                <span class="font-bold text-gray-800 text-sm ml-1">机构排名</span>
+                                
+                                <!-- Ranking Switcher -->
+                                <div class="flex bg-white/40 backdrop-blur-sm rounded-lg p-0.5 border border-postal/10">
+                                    <button onclick="switchRankingType('district')" id="btn-rank-district" class="px-2.5 py-1 text-[10px] rounded-md font-bold text-white bg-postal shadow-sm transition-all">区</button>
+                                    <button onclick="switchRankingType('city')" id="btn-rank-city" class="px-2.5 py-1 text-[10px] rounded-md font-medium text-gray-500 hover:bg-white/50 transition-all">市</button>
+                                    <button onclick="switchRankingType('province')" id="btn-rank-province" class="px-2.5 py-1 text-[10px] rounded-md font-medium text-gray-500 hover:bg-white/50 transition-all">省</button>
+                                </div>
+                            </div>
+
+                            <!-- Table Content -->
+                            <div class="p-3 pt-4">
+                                <!-- Table Header -->
+                                <div class="grid grid-cols-4 gap-2 bg-emerald-100/50 rounded-lg py-2 px-2 mb-2 text-center border border-emerald-200/50">
+                                    <div class="col-span-2 text-[10px] font-bold text-postal text-left pl-1">核心指标</div>
+                                    <div class="text-[10px] font-bold text-postal">实绩</div>
+                                    <div id="ranking-column-header" class="text-[10px] font-bold text-postal transition-all duration-300">区排名</div>
+                                </div>
+
+                                <!-- Rows -->
+                                <div class="space-y-1">
+                                    <!-- Row 1 -->
+                                    <div class="grid grid-cols-4 gap-2 py-1.5 px-2 hover:bg-emerald-100/30 rounded-lg transition-colors items-center text-center">
+                                        <div class="col-span-2 text-[11px] text-gray-700 text-left pl-1">有效商户<span class="text-[9px] text-gray-400 scale-90 ml-0.5">(户)</span></div>
+                                        <div class="text-[11px] font-bold text-gray-800 font-sans">262</div>
+                                        <div class="text-[11px] text-gray-700 font-sans relative">
+                                            <span class="ranking-val ranking-district animate-fade-in">11</span>
+                                            <span class="ranking-val ranking-city hidden">74</span>
+                                            <span class="ranking-val ranking-province hidden">5</span>
+                                        </div>
+                                    </div>
+                                    <!-- Row 2 -->
+                                    <div class="grid grid-cols-4 gap-2 py-1.5 px-2 bg-gray-50/50 hover:bg-emerald-100/30 rounded-lg transition-colors items-center text-center">
+                                        <div class="col-span-2 text-[11px] text-gray-700 text-left pl-1">总资产规模<span class="text-[9px] text-gray-400 scale-90 ml-0.5">(万元)</span></div>
+                                        <div class="text-[11px] font-bold text-gray-800 font-sans">25</div>
+                                        <div class="text-[11px] text-gray-700 font-sans relative">
+                                            <span class="ranking-val ranking-district animate-fade-in">13</span>
+                                            <span class="ranking-val ranking-city hidden">95</span>
+                                            <span class="ranking-val ranking-province hidden">18</span>
+                                        </div>
+                                    </div>
+                                    <!-- Row 3 -->
+                                    <div class="grid grid-cols-4 gap-2 py-1.5 px-2 hover:bg-emerald-100/30 rounded-lg transition-colors items-center text-center">
+                                        <div class="col-span-2 text-[11px] text-gray-700 text-left pl-1">本年新增总资产<span class="text-[9px] text-gray-400 scale-90 ml-0.5">(万元)</span></div>
+                                        <div class="text-[11px] font-bold text-gray-800 font-sans">4758</div>
+                                        <div class="text-[11px] text-gray-700 font-sans relative">
+                                            <span class="ranking-val ranking-district animate-fade-in">8</span>
+                                            <span class="ranking-val ranking-city hidden">64</span>
+                                            <span class="ranking-val ranking-province hidden">12</span>
+                                        </div>
+                                    </div>
+                                    <!-- Row 4 -->
+                                    <div class="grid grid-cols-4 gap-2 py-1.5 px-2 bg-gray-50/50 hover:bg-emerald-100/30 rounded-lg transition-colors items-center text-center">
+                                        <div class="col-span-2 text-[11px] text-gray-700 text-left pl-1">智慧场景新增总资产<span class="text-[9px] text-gray-400 scale-90 ml-0.5">(万元)</span></div>
+                                        <div class="text-[11px] font-bold text-gray-800 font-sans">526.3</div>
+                                        <div class="text-[11px] text-gray-700 font-sans relative">
+                                            <span class="ranking-val ranking-district animate-fade-in">7</span>
+                                            <span class="ranking-val ranking-city hidden">48</span>
+                                            <span class="ranking-val ranking-province hidden">9</span>
+                                        </div>
+                                    </div>
+                                    <!-- Row 5 -->
+                                    <div class="grid grid-cols-4 gap-2 py-1.5 px-2 hover:bg-emerald-100/30 rounded-lg transition-colors items-center text-center">
+                                        <div class="col-span-2 text-[11px] text-gray-700 text-left pl-1">集群市场新增总资产<span class="text-[9px] text-gray-400 scale-90 ml-0.5">(万元)</span></div>
+                                        <div class="text-[11px] font-bold text-gray-800 font-sans">526.3</div>
+                                        <div class="text-[11px] text-gray-700 font-sans relative">
+                                            <span class="ranking-val ranking-district animate-fade-in">7</span>
+                                            <span class="ranking-val ranking-city hidden">48</span>
+                                            <span class="ranking-val ranking-province hidden">9</span>
+                                        </div>
+                                    </div>
+                                    <!-- Row 6 -->
+                                    <div class="grid grid-cols-4 gap-2 py-1.5 px-2 bg-gray-50/50 hover:bg-emerald-100/30 rounded-lg transition-colors items-center text-center">
+                                        <div class="col-span-2 text-[11px] text-gray-700 text-left pl-1">商圈引流c端开卡数<span class="text-[9px] text-gray-400 scale-90 ml-0.5">(户)</span></div>
+                                        <div class="text-[11px] font-bold text-gray-800 font-sans">526.3</div>
+                                        <div class="text-[11px] text-gray-700 font-sans relative">
+                                            <span class="ranking-val ranking-district animate-fade-in">7</span>
+                                            <span class="ranking-val ranking-city hidden">48</span>
+                                            <span class="ranking-val ranking-province hidden">9</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                         <!-- 3. Merchant Quantity Overview -->
+                        <div class="glass-panel rounded-2xl relative mt-6">
+                            <!-- Header -->
+                            <div class="px-4 py-3 bg-gradient-to-r from-postal/10 to-emerald-100/40 flex items-center justify-between border-b border-postal/20 pl-16 relative rounded-t-2xl">
+                                <!-- Floating Icon -->
+                                <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-postal text-white flex items-center justify-center text-base shadow-lg shadow-emerald-500/30 transform-gpu -rotate-6 border-2 border-white transition-transform hover:-translate-y-1 subpixel-antialiased">
+                                    <i class="fas fa-store-alt drop-shadow-md"></i>
+                                </div>
+                                <span class="font-bold text-gray-800 text-sm ml-1">商户数量总览</span>
+                            </div>
+
+                            <!-- Content -->
+                            <div class="p-4 pt-4 space-y-4">
+                                <!-- Top Cards (Total & Active) -->
+                                <div class="grid grid-cols-2 gap-3">
+                                    <div class="bg-emerald-100/50 rounded-xl p-3 border border-emerald-100 relative text-center overflow-hidden">
+                                        <div class="absolute -right-2 -bottom-2 text-emerald-100 text-4xl opacity-50"><i class="fas fa-store"></i></div>
+                                        <div class=" items-center gap-1.5 mb-1 text-emerald-800">
+                                            <!-- <i class="fas fa-store text-xs"></i> -->
+                                            <span class="text-[10px] font-bold text-postal">商户数</span>
+                                        </div>
+                                        <div class="text-[16px] font-bold text-gray-800 font-sans relative z-10">262</div>
+                                    </div>
+                                    <div class="bg-emerald-100/50 rounded-xl p-3 border border-emerald-100 relative text-center overflow-hidden">
+                                        <div class="absolute -right-2 -bottom-2 text-emerald-100 text-4xl opacity-50"><i class="fas fa-fire"></i></div>
+                                        <div class=" items-center gap-1.5 mb-1 text-emerald-800">
+                                            <!-- <i class="fas fa-fire text-xs"></i> -->
+                                            <span class="text-[10px] font-bold text-postal">活跃商户数</span>
+                                        </div>
+                                        <div class="text-[16px] font-bold text-gray-800 font-sans relative z-10">44</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Transaction Stats -->
+                                <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-gray-100 border-dashed">
+                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer">
+                                        <div class="text-[9px] text-gray-600 mb-1">本日交易商户</div>
+                                        <div class="text-sm font-bold text-gray-800 font-sans">34</div>
+                                    </div>
+                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer">
+                                        <div class="text-[9px] text-gray-600 mb-1">本月交易商户</div>
+                                        <div class="text-sm font-bold text-gray-800 font-sans">76</div>
+                                    </div>
+                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer">
+                                        <div class="text-[9px] text-gray-600 mb-1">本年交易商户</div>
+                                        <div class="text-sm font-bold text-gray-800 font-sans">124</div>
+                                    </div>
+                                </div>
+                                
+                                <!-- Merchant Tiers -->
+                                <div class="grid grid-cols-4 gap-2 text-center pt-2">
+                                     <div class="space-y-1">
+                                        <div class="text-[9px] text-gray-500">潜力商户</div>
+                                        <div class="text-xs font-bold text-gray-700 font-sans">107</div>
+                                     </div>
+                                     <div class="space-y-1">
+                                        <div class="text-[9px] text-gray-500">一星商户</div>
+                                        <div class="text-xs font-bold text-gray-700 font-sans">77</div>
+                                     </div>
+                                     <div class="space-y-1">
+                                        <div class="text-[9px] text-gray-500">二星商户</div>
+                                        <div class="text-xs font-bold text-gray-700 font-sans">90</div>
+                                     </div>
+                                     <div class="space-y-1">
+                                        <div class="text-[9px] text-gray-500">三星及以上商户</div>
+                                        <div class="text-xs font-bold text-gray-700 font-sans">88</div>
+                                     </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- View 2: Merchant Profile (Hidden initially) -->
+                    <div id="data-view-merchant" class="space-y-4 hidden animate-fade-in pb-24">
+                        <!-- Search & Filter Bar -->
+                        <div class="flex items-center gap-2">
+                            <div class="relative flex-1">
+                                <input type="text" placeholder="搜索商户名称/编号" class="w-full bg-white/80 border border-white/60 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-postal/50 shadow-sm">
+                                <i class="fas fa-search absolute left-3.5 top-3 text-gray-400 text-xs"></i>
+                            </div>
+                            <button onclick="toggleFilterModal()" class="w-10 h-10 rounded-xl bg-white/80 border border-white/60 shadow-sm flex items-center justify-center text-gray-600 hover:text-postal transition-colors">
+                                <i class="fas fa-filter text-sm"></i>
+                            </button>
+                        </div>
+
+                        <!-- Merchant List -->
+                        <div class="space-y-3">
+                            <!-- Merchant Card 1 -->
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer" onclick="showMerchantDetail(this)">
+                                <!-- Header: Blue Gradient -->
+                                <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
+                                    <div class="flex items-center gap-2">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center text-sm shadow-md shadow-blue-500/20 border-2 border-white">
+                                            <i class="fas fa-store"></i>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800">鲜丰水果连锁</h4>
+                                    </div>
+                                    <!-- Drill-down Icon -->
+                                    <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Body: White Background -->
+                                <div class="p-3 bg-white space-y-2.5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户号</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">6020975641</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">开户时间</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">2023-10-15 09:30:15</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
+                                        <span class="text-[11px] font-medium text-gray-700 truncate">杭州市西湖区文三路478号</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                             <!-- Merchant Card 2 -->
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer" onclick="showMerchantDetail(this)">
+                                <!-- Header: Blue Gradient -->
+                                <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center text-sm shadow-md shadow-blue-500/20 border-2 border-white">
+                                            <i class="fas fa-store"></i>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800">必胜客(万达店)</h4>
+                                    </div>
+                                    <!-- Drill-down Icon -->
+                                    <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                    </div>
+                                </div>
+                                
+                                <!-- Body: White Background -->
+                                <div class="p-3 bg-white space-y-2.5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户号</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">6021457895</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">开户时间</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">2023-09-28 14:22:10</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
+                                        <span class="text-[11px] font-medium text-gray-700 truncate">杭州市拱墅区杭行路666号万达广场F4</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
              <!-- ================= Tab 4: 我的 (Mine) ================= -->
              <div id="tab-mine" class="tab-content no-scrollbar">
                 <div class="relative">
@@ -676,7 +1356,7 @@
                             <div class="p-3.5 flex items-center justify-between border-b border-gray-100 cursor-pointer hover:bg-white/50">
                                 <div class="flex items-center gap-3">
                                     <div class="w-7 h-7 rounded-lg bg-postal/10 text-postal flex items-center justify-center text-xs"><i class="fas fa-key"></i></div>
-                                    <span class="text-xs font-medium text-gray-700">密码重置</span>
+                                    <span class="text-xs font-medium text-gray-700">修改密码</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
                             </div>
@@ -715,6 +1395,83 @@
 
         </div>
 
+        <!-- Filter Modal (Bottom Sheet) -->
+        <div id="filter-modal-backdrop" class="absolute inset-0 bg-black/40 backdrop-blur-[2px] z-[60] hidden transition-opacity duration-300 opacity-0" onclick="toggleFilterModal()"></div>
+        <div id="filter-modal" class="absolute bottom-0 left-0 w-full bg-white rounded-t-3xl p-5 z-[70] transform translate-y-full transition-transform duration-300 ease-out shadow-glass-up max-h-[80vh] overflow-y-auto">
+            <!-- Handle Bar -->
+            <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
+            
+            <!-- Filter Sections -->
+            <div class="space-y-6">
+                <!-- 1. Opening Date Range -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-800 mb-3">开户时间范围</h3>
+                    <div class="flex flex-wrap gap-2">
+                         <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">近7天</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">30天</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">180天</button>
+                    </div>
+                </div>
+
+                <!-- 2. Merchant Star Rating -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-800 mb-3">商户星级</h3>
+                    <div class="flex flex-wrap gap-2">
+                        <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
+                        <button class="filter-chip" onclick="toggleChip(this)">潜力商户</button>
+                        <button class="filter-chip" onclick="toggleChip(this)">一星商户</button>
+                        <button class="filter-chip" onclick="toggleChip(this)">二星商户</button>
+                        <button class="filter-chip" onclick="toggleChip(this)">三星及以上</button>
+                    </div>
+                </div>
+
+                <!-- 3. Classification (Category) -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-800 mb-3">分类</h3>
+                    <div class="flex flex-wrap gap-2" id="filter-category-options">
+                        <!-- JS injected options -->
+                    </div>
+                </div>
+
+                <!-- 4. Merchant Tags (Dynamic) -->
+                <div id="filter-section-tags" class="hidden animate-fade-in">
+                    <h3 class="text-sm font-bold text-gray-800 mb-3">商户标签</h3>
+                    <div class="flex flex-wrap gap-2" id="filter-tag-options">
+                        <!-- JS injected options -->
+                    </div>
+                </div>
+
+                <!-- 5. Warning Type -->
+                <div>
+                    <h3 class="text-sm font-bold text-gray-800 mb-3">预警类型</h3>
+                    <div class="flex flex-wrap gap-2">
+                         <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">资料预警</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">交易预警</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">补贴预警</button>
+                    </div>
+                </div>
+
+                <!-- 6. Warning Level -->
+                 <div>
+                    <h3 class="text-sm font-bold text-gray-800 mb-3">预警等级</h3>
+                    <div class="flex flex-wrap gap-2">
+                         <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">高度关注</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">重度关注</button>
+                         <button class="filter-chip" onclick="toggleChip(this)">轻度关注</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex gap-3 mt-8 pt-4 border-t border-gray-100">
+                <button onclick="resetFilters()" class="flex-1 py-3 rounded-xl bg-gray-50 text-gray-600 font-bold text-sm">重置</button>
+                <button onclick="toggleFilterModal()" class="flex-1 py-3 rounded-xl bg-postal text-white font-bold text-sm shadow-lg shadow-postal/30">确认筛选</button>
+            </div>
+        </div>
+
         <!-- Bottom Tab Bar (Fixed) -->
         <div class="h-[72px] bg-white absolute bottom-0 w-full z-50 flex items-center justify-around pb-4 px-2 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <!-- Home Tab -->
@@ -726,16 +1483,7 @@
                 <span class="text-[9px] font-medium">首页</span>
             </button>
 
-            <!-- Data Tab -->
-            <button class="nav-btn flex flex-col items-center gap-1 p-2 w-16 text-gray-400 transition-all duration-300 hover:text-postal/70" onclick="switchTab('audit')">
-                <div class="icon-container text-lg mb-0.5 relative transition-transform duration-300">
-                    <i class="fas fa-chart-pie"></i>
-                    <div class="active-dot absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-postal rounded-full opacity-0 transition-opacity"></div>
-                </div>
-                <span class="text-[9px] font-medium">数据</span>
-            </button>
-
-            <!-- Notification Tab -->
+             <!-- Notification Tab -->
             <button class="nav-btn flex flex-col items-center gap-1 p-2 w-16 text-gray-400 transition-all duration-300 hover:text-postal/70" onclick="switchTab('notification')">
                 <div class="icon-container text-lg mb-0.5 relative transition-transform duration-300">
                     <i class="fas fa-bell"></i>
@@ -745,6 +1493,17 @@
                 </div>
                 <span class="text-[9px] font-medium">通知</span>
             </button>
+
+            <!-- Data Tab -->
+            <button class="nav-btn flex flex-col items-center gap-1 p-2 w-16 text-gray-400 transition-all duration-300 hover:text-postal/70" onclick="switchTab('audit')">
+                <div class="icon-container text-lg mb-0.5 relative transition-transform duration-300">
+                    <i class="fas fa-chart-pie"></i>
+                    <div class="active-dot absolute -bottom-1.5 left-1/2 -translate-x-1/2 w-1 h-1 bg-postal rounded-full opacity-0 transition-opacity"></div>
+                </div>
+                <span class="text-[9px] font-medium">数据</span>
+            </button>
+
+           
 
             <!-- Mine Tab -->
             <button class="nav-btn flex flex-col items-center gap-1 p-2 w-16 text-gray-400 transition-all duration-300 hover:text-postal/70" onclick="switchTab('mine')">
@@ -809,7 +1568,7 @@
 
             // 3. Update Nav Buttons
             const buttons = document.querySelectorAll('.nav-btn');
-            const navMap = {'home': 0, 'audit': 1, 'notification': 2, 'mine': 3};
+            const navMap = {'home': 0, 'audit': 2, 'notification': 1, 'mine': 3};
             const activeIndex = navMap[tabId];
 
             buttons.forEach((btn, index) => {
@@ -831,6 +1590,139 @@
                 }
             });
         }
+
+        // --- Merchant Detail Chart Logic ---
+        var assetsChart = null;
+        var transactionChart = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initCharts();
+        });
+
+        function initCharts() {
+            var assetsDom = document.getElementById('assets-chart');
+            if (assetsDom) {
+                assetsChart = echarts.init(assetsDom);
+                updateAssetsChart('assets');
+            }
+
+            var transDom = document.getElementById('transaction-chart');
+            if (transDom) {
+                transactionChart = echarts.init(transDom);
+                updateTransactionChart('amount');
+            }
+            
+            window.addEventListener('resize', function() {
+                assetsChart && assetsChart.resize();
+                transactionChart && transactionChart.resize();
+            });
+        }
+
+        function switchAssetTab(btn, type) {
+            var container = btn.parentElement;
+            var buttons = container.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('active', 'text-blue-600', 'border-blue-600');
+                b.classList.add('text-gray-500', 'border-transparent');
+            });
+            btn.classList.remove('text-gray-500', 'border-transparent');
+            btn.classList.add('active', 'text-blue-600', 'border-blue-600');
+            updateAssetsChart(type);
+        }
+
+        function updateAssetsChart(type) {
+            if (!assetsChart) return;
+            var data = type === 'assets' ? [5203, 12845, 132443, 8500, 9200, 11000] : [2000, 3000, 4500, 2800, 3200, 4100];
+            // Change color for costs to green (#10b981) to match transaction count, instead of red
+            var color = type === 'assets' ? '#3b82f6' : '#10b981'; 
+            var gradientEnd = type === 'assets' ? '#dbeafe' : '#d1fae5'; // Light blue for assets, light green for costs
+            
+            var option = {
+                grid: { top: 10, right: 10, bottom: 20, left: 40 },
+                tooltip: { trigger: 'axis' },
+                xAxis: {
+                    type: 'category',
+                    data: ['06', '07', '08', '09', '10', '11'],
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: { fontSize: 10, color: '#9ca3af' }
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { type: 'dashed', color: '#e5e7eb' } },
+                    axisLabel: { fontSize: 10, color: '#9ca3af' }
+                },
+                series: [{
+                    data: data,
+                    type: 'bar',
+                    barWidth: '40%',
+                    itemStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: color },
+                            { offset: 1, color: gradientEnd }
+                        ]),
+                        borderRadius: [4, 4, 0, 0]
+                    }
+                }]
+            };
+            assetsChart.setOption(option);
+        }
+
+        function switchTransactionTab(btn, type) {
+            var container = btn.parentElement;
+            var buttons = container.querySelectorAll('button');
+            buttons.forEach(b => {
+                b.classList.remove('active', 'text-blue-600', 'border-blue-600');
+                b.classList.add('text-gray-500', 'border-transparent');
+            });
+            btn.classList.remove('text-gray-500', 'border-transparent');
+            btn.classList.add('active', 'text-blue-600', 'border-blue-600');
+            updateTransactionChart(type);
+        }
+
+        function updateTransactionChart(type) {
+            if (!transactionChart) return;
+            var data = type === 'amount' ? [12345, 15678, 11234, 18900, 14500, 16700] : [120, 150, 90, 180, 140, 160];
+            var color = type === 'amount' ? '#3b82f6' : '#10b981';
+            var option = {
+                grid: { top: 10, right: 10, bottom: 20, left: 40 },
+                tooltip: { trigger: 'axis' },
+                xAxis: {
+                    type: 'category',
+                    data: ['06', '07', '08', '09', '10', '11'],
+                    axisLine: { show: false },
+                    axisTick: { show: false },
+                    axisLabel: { fontSize: 10, color: '#9ca3af' }
+                },
+                yAxis: {
+                    type: 'value',
+                    splitLine: { lineStyle: { type: 'dashed', color: '#e5e7eb' } },
+                    axisLabel: { fontSize: 10, color: '#9ca3af' }
+                },
+                series: [{
+                    data: data,
+                    type: 'line',
+                    smooth: true,
+                    showSymbol: false,
+                    lineStyle: { width: 3, color: color },
+                    areaStyle: {
+                        color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+                            { offset: 0, color: color },
+                            { offset: 1, color: 'rgba(255,255,255,0)' }
+                        ])
+                    }
+                }]
+            };
+            transactionChart.setOption(option);
+        }
+
+        // Hook to ensure charts resize when overlay opens
+        var _originalShow = window.showMerchantDetail;
+        // Since showMerchantDetail is defined in global scope but not accessible here to wrap easily 
+        // without knowing if it was var or function declaration in previous script blocks (it was function),
+        // we can just add a click listener to the body that delegates or use a MutationObserver.
+        // Simplest: The user clicks something to open it.
+
     </script>
 </body>
 </html>
