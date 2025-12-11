@@ -137,7 +137,8 @@
             { name: '商户性质', tags: ['个体工商户', '企业商户', '小微商户', '事业单位'] },
             { name: '营业场所', tags: ['主城区', '开发区', '乡镇网点', '商业中心', '农村地区'] },
             { name: '行业分类', tags: ['餐饮美食', '零售百货', '休闲娱乐', '生活服务', '酒店住宿', '医药健康'] },
-            { name: '项目类商户', tags: ['智慧校园', '智慧医院', '智慧园区', '智慧食堂', '智慧景区'] }
+            { name: '项目类商户', tags: ['智慧校园', '智慧医院', '智慧园区', '智慧食堂', '智慧景区'] },
+            { name: '商户等级', tags: ['潜力商户', '一星商户', '二星商户', '三星及以上'] }
         ];
 
         let selectedCategory = 'all'; // Default to 'all'
@@ -180,6 +181,39 @@
             }
         }
 
+        // Select Time Range
+        function selectTimeRange(range, btn) {
+            // Toggle active state
+            const siblings = btn.parentElement.querySelectorAll('.filter-chip');
+            siblings.forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Handle Custom Range Visibility
+            const customRange = document.getElementById('custom-time-range');
+            if (range === 'custom') {
+                customRange.classList.remove('hidden');
+            } else {
+                customRange.classList.add('hidden');
+            }
+        }
+
+        // Select Warning Type
+        function selectWarningType(type, btn) {
+             // Toggle active state
+            const siblings = btn.parentElement.querySelectorAll('.filter-chip');
+            siblings.forEach(el => el.classList.remove('active'));
+            btn.classList.add('active');
+            
+            // Handle Warning Level Visibility
+            const levelSection = document.getElementById('filter-section-warning-level');
+            if (type === 'all') {
+                levelSection.classList.add('hidden');
+            } else {
+                levelSection.classList.remove('hidden');
+            }
+        }
+
+
         // Select Category (Level 1)
         function selectCategory(name, btn) {
             // Toggle active state
@@ -198,8 +232,13 @@
                 const category = categoryData.find(i => i.name === name);
                 const tagContainer = document.getElementById('filter-tag-options');
                 
-                // Add "All" tag button
-                let tagHtml = `<button class="filter-chip active" onclick="toggleChip(this)">全部</button>`;
+                let tagHtml = '';
+                
+                // Add "All" tag button ONLY if it's NOT '商户等级'
+                if (name !== '商户等级') {
+                    tagHtml += `<button class="filter-chip active" onclick="toggleChip(this)">全部</button>`;
+                }
+                
                 tagHtml += category.tags.map(tag => `
                     <button class="filter-chip" onclick="toggleChip(this)">${tag}</button>
                 `).join('');
@@ -246,11 +285,37 @@
             }
             document.getElementById('filter-section-tags').classList.add('hidden');
             
-            // Reset other groups (like Tier) with "All" button
+            // Reset Time Range (Default to '180' / 近半年)
+            const timeSection = document.getElementById('filter-section-time');
+            if(timeSection) {
+                const timeBtns = timeSection.querySelectorAll('.filter-chip');
+                timeBtns.forEach(btn => {
+                    if(btn.textContent.trim() === '近半年') btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+                document.getElementById('custom-time-range').classList.add('hidden');
+            }
+
+            // Reset Warning Type (Default to 'all')
+            const warningTypeSection = document.getElementById('filter-section-warning-type');
+             if(warningTypeSection) {
+                const warningBtns = warningTypeSection.querySelectorAll('.filter-chip');
+                warningBtns.forEach(btn => {
+                    if(btn.textContent.trim() === '全部') btn.classList.add('active');
+                    else btn.classList.remove('active');
+                });
+            }
+
+            // Hide Warning Level
+            document.getElementById('filter-section-warning-level').classList.add('hidden');
+            
+            // Reset other generic groups
             document.querySelectorAll('#filter-modal .filter-chip').forEach(btn => {
                 const parent = btn.parentElement;
-                // Skip if it's inside category options (handled above)
-                if (parent.id === 'filter-category-options') return;
+                // Skip if it's inside handled sections
+                if (parent.id === 'filter-category-options' || 
+                    parent.closest('#filter-section-time') || 
+                    parent.closest('#filter-section-warning-type')) return;
                 
                 const allBtn = Array.from(parent.children).find(c => c.textContent.trim() === '全部');
                 if (allBtn) {
@@ -259,6 +324,9 @@
                     } else {
                         btn.classList.remove('active');
                     }
+                } else {
+                     // For groups without "All" (like Merchant Level Tags, Warning Level), deselect all
+                     btn.classList.remove('active');
                 }
             });
         }
@@ -525,40 +593,40 @@
                     </div>
                     <div class="p-4 grid grid-cols-3 gap-2">
                          <!-- Row 1: Amounts (Light Blue) -->
-                         <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                         <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                             <span class="text-[10px] text-gray-600 mb-1">本日交易金额</span>
                             <span class="text-xs font-bold text-gray-800 font-sans">¥3667.1</span>
                         </div>
-                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                             <span class="text-[10px] text-gray-600 mb-1">本月交易金额</span>
                             <span class="text-xs font-bold text-gray-800 font-sans">¥35389.6</span>
                         </div>
-                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                             <span class="text-[10px] text-gray-600 mb-1">本年交易金额</span>
                             <span class="text-xs font-bold text-gray-800 font-sans">¥567834.73</span>
                         </div>
 
                         <!-- Row 2: Counts (Light Blue) -->
-                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                             <span class="text-[10px] text-gray-600 mb-1">本日交易笔数</span>
                             <span class="text-xs font-bold text-gray-800 font-sans">138</span>
                         </div>
-                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                             <span class="text-[10px] text-gray-600 mb-1">本月交易笔数</span>
                             <span class="text-xs font-bold text-gray-800 font-sans">1316</span>
                         </div>
-                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                        <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                             <span class="text-[10px] text-gray-600 mb-1">本年交易笔数</span>
                             <span class="text-xs font-bold text-gray-800 font-sans">20842</span>
                         </div>
 
                         <!-- Row 3: Frequency (Light Blue, Full Width Row) -->
                         <div class="col-span-3 grid grid-cols-2 gap-2">
-                             <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                             <div class="bg-orange-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                                 <span class="text-[10px] text-gray-600 mb-1">本月交易天数</span>
                                 <span class="text-xs font-bold text-gray-800">7天</span>
                             </div>
-                            <div class="bg-blue-50 rounded-lg p-2 text-center flex flex-col justify-center h-20">
+                            <div class="bg-orange-50 rounded-lg p-2 text-center flex flex-col justify-center h-17">
                                 <span class="text-[10px] text-gray-600 mb-1 leading-tight">最近一次交易距今天数</span>
                                 <span class="text-xs font-bold text-gray-800">4天</span>
                             </div>
@@ -586,8 +654,8 @@
                             <div class="text-[10px] text-gray-600 mt-1">交易预警</div>
                         </div>
                         <!-- Low Warning -->
-                        <div class="bg-blue-50 border border-blue-100 rounded-lg p-3 text-center flex flex-col justify-center h-16">
-                            <div class="text-xs font-bold text-blue-500">轻度关注</div>
+                        <div class="bg-green-50 border border-green-100 rounded-lg p-3 text-center flex flex-col justify-center h-16">
+                            <div class="text-xs font-bold text-green-500">轻度关注</div>
                             <div class="text-[10px] text-gray-600 mt-1">补贴预警</div>
                         </div>
                     </div>
@@ -602,17 +670,17 @@
                         <span class="font-bold text-gray-800 text-sm ml-1">商户资产数据</span>
                     </div>
                     <div class="p-4 grid grid-cols-3 gap-2">
-                        <div class="bg-blue-50/50 rounded-lg p-3 text-center">
-                            <div class="text-[10px] text-gray-600 mb-1">信用卡交易数</div>
-                            <div class="text-sm font-bold text-blue-600">0笔</div>
+                        <div class="bg-blue-50 rounded-lg p-3 text-center">
+                            <div class="text-[10px] text-gray-600 mb-1">持有信用卡</div>
+                            <div class="text-xs font-bold text-gray-800">1</div>
                         </div>
-                        <div class="bg-blue-50/50 rounded-lg p-3 text-center">
-                            <div class="text-[10px] text-gray-600 mb-1">退款</div>
-                            <div class="text-sm font-bold text-blue-600">¥0.00</div>
+                        <div class="bg-blue-50 rounded-lg p-3 text-center">
+                            <div class="text-[10px] text-gray-600 mb-1">理财金额</div>
+                            <div class="text-xs font-bold text-gray-800">¥0.00</div>
                         </div>
-                        <div class="bg-blue-50/50 rounded-lg p-3 text-center">
-                            <div class="text-[10px] text-gray-600 mb-1">撤单</div>
-                            <div class="text-sm font-bold text-blue-600">¥0.00</div>
+                        <div class="bg-blue-50 rounded-lg p-3 text-center">
+                            <div class="text-[10px] text-gray-600 mb-1">融资e金额</div>
+                            <div class="text-xs font-bold text-gray-800">¥0.00</div>
                         </div>
                     </div>
                 </div>
@@ -636,15 +704,15 @@
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             <div class="bg-blue-50 rounded-lg p-2 text-center">
                                 <div class="text-[10px] text-gray-600 mb-1">本日净增</div>
-                                <div class="text-xs font-bold text-blue-600">¥5203.2</div>
+                                <div class="text-xs font-bold text-gray-800">¥5203.2</div>
                             </div>
                             <div class="bg-blue-50 rounded-lg p-2 text-center">
                                 <div class="text-[10px] text-gray-600 mb-1">本月净增</div>
-                                <div class="text-xs font-bold text-blue-600">-¥112845.74</div>
+                                <div class="text-xs font-bold text-gray-800">-¥112845.74</div>
                             </div>
                             <div class="bg-blue-50 rounded-lg p-2 text-center">
                                 <div class="text-[10px] text-gray-600 mb-1">本年净增</div>
-                                <div class="text-xs font-bold text-blue-600">¥132443.46</div>
+                                <div class="text-xs font-bold text-gray-800">¥132443.46</div>
                             </div>
                         </div>
     
@@ -1404,29 +1472,23 @@
             <!-- Filter Sections -->
             <div class="space-y-6">
                 <!-- 1. Opening Date Range -->
-                <div>
+                <div id="filter-section-time">
                     <h3 class="text-sm font-bold text-gray-800 mb-3">开户时间范围</h3>
-                    <div class="flex flex-wrap gap-2">
-                         <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
-                         <button class="filter-chip" onclick="toggleChip(this)">近7天</button>
-                         <button class="filter-chip" onclick="toggleChip(this)">30天</button>
-                         <button class="filter-chip" onclick="toggleChip(this)">180天</button>
+                    <div class="flex flex-wrap gap-2 mb-3">
+                         <button class="filter-chip" onclick="selectTimeRange('7', this)">近七天</button>
+                         <button class="filter-chip" onclick="selectTimeRange('30', this)">近30天</button>
+                         <button class="filter-chip active" onclick="selectTimeRange('180', this)">近半年</button>
+                         <button class="filter-chip" onclick="selectTimeRange('custom', this)">自定义</button>
+                    </div>
+                    <!-- Custom Date Inputs (Hidden by default) -->
+                    <div id="custom-time-range" class="hidden flex items-center gap-2 animate-fade-in">
+                        <input type="date" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg p-2 focus:ring-postal focus:border-postal block w-full">
+                        <span class="text-gray-400">-</span>
+                        <input type="date" class="bg-gray-50 border border-gray-200 text-gray-700 text-xs rounded-lg p-2 focus:ring-postal focus:border-postal block w-full">
                     </div>
                 </div>
 
-                <!-- 2. Merchant Star Rating -->
-                <div>
-                    <h3 class="text-sm font-bold text-gray-800 mb-3">商户星级</h3>
-                    <div class="flex flex-wrap gap-2">
-                        <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
-                        <button class="filter-chip" onclick="toggleChip(this)">潜力商户</button>
-                        <button class="filter-chip" onclick="toggleChip(this)">一星商户</button>
-                        <button class="filter-chip" onclick="toggleChip(this)">二星商户</button>
-                        <button class="filter-chip" onclick="toggleChip(this)">三星及以上</button>
-                    </div>
-                </div>
-
-                <!-- 3. Classification (Category) -->
+                <!-- 2. Classification (Category) -->
                 <div>
                     <h3 class="text-sm font-bold text-gray-800 mb-3">分类</h3>
                     <div class="flex flex-wrap gap-2" id="filter-category-options">
@@ -1434,7 +1496,7 @@
                     </div>
                 </div>
 
-                <!-- 4. Merchant Tags (Dynamic) -->
+                <!-- 3. Merchant Tags (Dynamic) -->
                 <div id="filter-section-tags" class="hidden animate-fade-in">
                     <h3 class="text-sm font-bold text-gray-800 mb-3">商户标签</h3>
                     <div class="flex flex-wrap gap-2" id="filter-tag-options">
@@ -1442,22 +1504,21 @@
                     </div>
                 </div>
 
-                <!-- 5. Warning Type -->
-                <div>
+                <!-- 4. Warning Type -->
+                <div id="filter-section-warning-type">
                     <h3 class="text-sm font-bold text-gray-800 mb-3">预警类型</h3>
                     <div class="flex flex-wrap gap-2">
-                         <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
-                         <button class="filter-chip" onclick="toggleChip(this)">资料预警</button>
-                         <button class="filter-chip" onclick="toggleChip(this)">交易预警</button>
-                         <button class="filter-chip" onclick="toggleChip(this)">补贴预警</button>
+                         <button class="filter-chip active" onclick="selectWarningType('all', this)">全部</button>
+                         <button class="filter-chip" onclick="selectWarningType('data', this)">资料预警</button>
+                         <button class="filter-chip" onclick="selectWarningType('transaction', this)">交易预警</button>
+                         <button class="filter-chip" onclick="selectWarningType('subsidy', this)">补贴预警</button>
                     </div>
                 </div>
 
-                <!-- 6. Warning Level -->
-                 <div>
+                <!-- 5. Warning Level -->
+                 <div id="filter-section-warning-level" class="hidden animate-fade-in">
                     <h3 class="text-sm font-bold text-gray-800 mb-3">预警等级</h3>
                     <div class="flex flex-wrap gap-2">
-                         <button class="filter-chip active" onclick="toggleChip(this)">全部</button>
                          <button class="filter-chip" onclick="toggleChip(this)">高度关注</button>
                          <button class="filter-chip" onclick="toggleChip(this)">重度关注</button>
                          <button class="filter-chip" onclick="toggleChip(this)">轻度关注</button>
