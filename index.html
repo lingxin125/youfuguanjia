@@ -552,11 +552,6 @@
                             <i class="fas fa-store drop-shadow-md"></i>
                         </div>
                         <span class="font-bold text-gray-800 text-sm ml-1">商户基本信息</span>
-                        <div class="flex text-yellow-400 text-xs">
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                            <i class="fas fa-star"></i>
-                        </div>
                     </div>
                     <!-- Content -->
                     <div class="p-4 space-y-3 text-xs">
@@ -579,6 +574,14 @@
                         <div class="flex justify-between items-start border-t border-blue-50/50 pt-2">
                             <span class="text-gray-500 shrink-0 w-20">地址</span>
                             <span class="text-gray-800 font-medium text-right break-words max-w-[70%]">杭州市西湖区文三路478号</span>
+                        </div>
+                        <div class="flex justify-between items-center border-t border-blue-50/50 pt-2">
+                            <span class="text-gray-500 shrink-0 w-20">商户星级</span>
+                            <div class="flex text-yellow-400 text-xs">
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                                <i class="fas fa-star"></i>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -703,21 +706,24 @@
                         <!-- Stats -->
                         <div class="grid grid-cols-3 gap-2 mb-4">
                             <div class="bg-blue-50 rounded-lg p-2 text-center">
-                                <div class="text-[10px] text-gray-600 mb-1">本日净增</div>
-                                <div class="text-xs font-bold text-gray-800">¥5203.2</div>
+                                <div id="stat-title-day" class="text-[10px] text-gray-600 mb-1">本日净增</div>
+                                <div id="stat-value-day" class="text-xs font-bold text-gray-800">¥5203.2</div>
                             </div>
                             <div class="bg-blue-50 rounded-lg p-2 text-center">
-                                <div class="text-[10px] text-gray-600 mb-1">本月净增</div>
-                                <div class="text-xs font-bold text-gray-800">-¥112845.74</div>
+                                <div id="stat-title-month" class="text-[10px] text-gray-600 mb-1">本月净增</div>
+                                <div id="stat-value-month" class="text-xs font-bold text-gray-800">-¥112845.74</div>
                             </div>
                             <div class="bg-blue-50 rounded-lg p-2 text-center">
-                                <div class="text-[10px] text-gray-600 mb-1">本年净增</div>
-                                <div class="text-xs font-bold text-gray-800">¥132443.46</div>
+                                <div id="stat-title-year" class="text-[10px] text-gray-600 mb-1">本年净增</div>
+                                <div id="stat-value-year" class="text-xs font-bold text-gray-800">¥132443.46</div>
                             </div>
                         </div>
     
                         <!-- Chart -->
+                    <div class="relative">
+                        <div class="absolute top-0 right-2 text-[10px] text-gray-400 z-10 pointer-events-none">单位：元</div>
                         <div id="assets-chart" class="w-full h-48"></div>
+                    </div>
                     </div>
                 </div>
 
@@ -737,7 +743,10 @@
                         </div>
     
                         <!-- Chart -->
+                    <div class="relative">
+                        <div id="transaction-unit" class="absolute top-0 right-2 text-[10px] text-gray-400 z-10 pointer-events-none">单位：元</div>
                         <div id="transaction-chart" class="w-full h-48"></div>
+                    </div>
                     </div>
                 </div>
 
@@ -1238,14 +1247,14 @@
                                 <div class="absolute -top-2 left-4 w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-postal text-white flex items-center justify-center text-base shadow-lg shadow-emerald-500/30 transform-gpu -rotate-6 border-2 border-white transition-transform hover:-translate-y-1 subpixel-antialiased">
                                     <i class="fas fa-store-alt drop-shadow-md"></i>
                                 </div>
-                                <span class="font-bold text-gray-800 text-sm ml-1">商户数量总览</span>
+                                <span class="font-bold text-gray-800 text-sm ml-1">机构商户数量总览</span>
                             </div>
 
                             <!-- Content -->
                             <div class="p-4 pt-4 space-y-4">
                                 <!-- Top Cards (Total & Active) -->
                                 <div class="grid grid-cols-2 gap-3">
-                                    <div class="bg-emerald-100/50 rounded-xl p-3 border border-emerald-100 relative text-center overflow-hidden">
+                                    <div class="bg-emerald-100/50 rounded-xl p-3 border border-emerald-100 relative text-center overflow-hidden cursor-pointer hover:bg-emerald-100/70 transition-colors" onclick="jumpFromIndicator('商户数', 262)">
                                         <div class="absolute -right-2 -bottom-2 text-emerald-100 text-4xl opacity-50"><i class="fas fa-store"></i></div>
                                         <div class=" items-center gap-1.5 mb-1 text-emerald-800">
                                             <!-- <i class="fas fa-store text-xs"></i> -->
@@ -1253,7 +1262,7 @@
                                         </div>
                                         <div class="text-[16px] font-bold text-gray-800 font-sans relative z-10">262</div>
                                     </div>
-                                    <div class="bg-emerald-100/50 rounded-xl p-3 border border-emerald-100 relative text-center overflow-hidden">
+                                    <div class="bg-emerald-100/50 rounded-xl p-3 border border-emerald-100 relative text-center overflow-hidden cursor-pointer hover:bg-emerald-100/70 transition-colors" onclick="jumpFromIndicator('活跃商户数', 44)">
                                         <div class="absolute -right-2 -bottom-2 text-emerald-100 text-4xl opacity-50"><i class="fas fa-fire"></i></div>
                                         <div class=" items-center gap-1.5 mb-1 text-emerald-800">
                                             <!-- <i class="fas fa-fire text-xs"></i> -->
@@ -1265,15 +1274,15 @@
                                 
                                 <!-- Transaction Stats -->
                                 <div class="grid grid-cols-3 gap-2 text-center pt-2 border-t border-gray-100 border-dashed">
-                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer">
+                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer" onclick="jumpFromIndicator('本日交易商户', 34)">
                                         <div class="text-[9px] text-gray-600 mb-1">本日交易商户</div>
                                         <div class="text-sm font-bold text-gray-800 font-sans">34</div>
                                     </div>
-                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer">
+                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer" onclick="jumpFromIndicator('本月交易商户', 76)">
                                         <div class="text-[9px] text-gray-600 mb-1">本月交易商户</div>
                                         <div class="text-sm font-bold text-gray-800 font-sans">76</div>
                                     </div>
-                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer">
+                                    <div class="bg-gray-50 rounded-lg p-2 hover:bg-emerald-100/50 transition-colors cursor-pointer" onclick="jumpFromIndicator('本年交易商户', 124)">
                                         <div class="text-[9px] text-gray-600 mb-1">本年交易商户</div>
                                         <div class="text-sm font-bold text-gray-800 font-sans">124</div>
                                     </div>
@@ -1281,20 +1290,20 @@
                                 
                                 <!-- Merchant Tiers -->
                                 <div class="grid grid-cols-4 gap-2 text-center pt-2">
-                                     <div class="space-y-1">
-                                        <div class="text-[9px] text-gray-500">潜力商户</div>
+                                     <div class="space-y-1 cursor-pointer group" onclick="jumpFromIndicator('潜力商户', 107)">
+                                        <div class="text-[9px] text-gray-500 group-hover:text-postal transition-colors">潜力商户</div>
                                         <div class="text-xs font-bold text-gray-700 font-sans">107</div>
                                      </div>
-                                     <div class="space-y-1">
-                                        <div class="text-[9px] text-gray-500">一星商户</div>
+                                     <div class="space-y-1 cursor-pointer group" onclick="jumpFromIndicator('一星商户', 77)">
+                                        <div class="text-[9px] text-gray-500 group-hover:text-postal transition-colors">一星商户</div>
                                         <div class="text-xs font-bold text-gray-700 font-sans">77</div>
                                      </div>
-                                     <div class="space-y-1">
-                                        <div class="text-[9px] text-gray-500">二星商户</div>
+                                     <div class="space-y-1 cursor-pointer group" onclick="jumpFromIndicator('二星商户', 90)">
+                                        <div class="text-[9px] text-gray-500 group-hover:text-postal transition-colors">二星商户</div>
                                         <div class="text-xs font-bold text-gray-700 font-sans">90</div>
                                      </div>
-                                     <div class="space-y-1">
-                                        <div class="text-[9px] text-gray-500">三星及以上商户</div>
+                                     <div class="space-y-1 cursor-pointer group" onclick="jumpFromIndicator('三星及以上商户', 88)">
+                                        <div class="text-[9px] text-gray-500 group-hover:text-postal transition-colors">三星及以上商户</div>
                                         <div class="text-xs font-bold text-gray-700 font-sans">88</div>
                                      </div>
                                 </div>
@@ -1307,7 +1316,7 @@
                         <!-- Search & Filter Bar -->
                         <div class="flex items-center gap-2">
                             <div class="relative flex-1">
-                                <input type="text" placeholder="搜索商户名称/编号" class="w-full bg-white/80 border border-white/60 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-postal/50 shadow-sm">
+                                <input type="text" placeholder="搜索商户号/商户名称" class="w-full bg-white/80 border border-white/60 rounded-xl py-2.5 pl-10 pr-4 text-xs focus:outline-none focus:ring-1 focus:ring-postal/50 shadow-sm">
                                 <i class="fas fa-search absolute left-3.5 top-3 text-gray-400 text-xs"></i>
                             </div>
                             <button onclick="toggleFilterModal()" class="w-10 h-10 rounded-xl bg-white/80 border border-white/60 shadow-sm flex items-center justify-center text-gray-600 hover:text-postal transition-colors">
@@ -1315,10 +1324,21 @@
                             </button>
                         </div>
 
+                        <!-- Filter Result Bar (Hidden by default) -->
+                        <div id="filter-result-bar" class="hidden flex justify-between items-center bg-blue-50/50 border border-blue-100 rounded-lg px-3 py-2 animate-fade-in">
+                            <div class="flex items-center gap-2">
+                                <i class="fas fa-filter text-blue-500 text-xs"></i>
+                                <span class="text-xs text-blue-600 font-medium">筛选结果：共 <span class="font-bold" id="filter-count">3</span> 条数据</span>
+                            </div>
+                            <button onclick="clearFilterResults()" class="text-[10px] text-gray-400 hover:text-gray-600 flex items-center gap-1">
+                                <i class="fas fa-times-circle"></i> 清除
+                            </button>
+                        </div>
+
                         <!-- Merchant List -->
-                        <div class="space-y-3">
+                        <div class="space-y-3" id="merchant-list-container">
                             <!-- Merchant Card 1 -->
-                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer" onclick="showMerchantDetail(this)">
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer merchant-item" onclick="showMerchantDetail(this)">
                                 <!-- Header: Blue Gradient -->
                                 <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
                                     <div class="flex items-center gap-2">
@@ -1351,7 +1371,7 @@
                             </div>
 
                              <!-- Merchant Card 2 -->
-                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer" onclick="showMerchantDetail(this)">
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer merchant-item" onclick="showMerchantDetail(this)">
                                 <!-- Header: Blue Gradient -->
                                 <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
                                     <div class="flex items-center gap-3">
@@ -1379,6 +1399,151 @@
                                     <div class="flex items-start gap-3">
                                         <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
                                         <span class="text-[11px] font-medium text-gray-700 truncate">杭州市拱墅区杭行路666号万达广场F4</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Merchant Card 3: Supermarket -->
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer merchant-item" onclick="showMerchantDetail(this)">
+                                <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center text-sm shadow-md shadow-blue-500/20 border-2 border-white">
+                                            <i class="fas fa-shopping-basket"></i>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800">世纪联华超市</h4>
+                                    </div>
+                                    <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-white space-y-2.5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户号</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">6021884523</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">开户时间</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">2023-11-05 10:15:33</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
+                                        <span class="text-[11px] font-medium text-gray-700 truncate">杭州市下城区庆春路88号</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Merchant Card 4: BBQ -->
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer merchant-item" onclick="showMerchantDetail(this)">
+                                <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center text-sm shadow-md shadow-blue-500/20 border-2 border-white">
+                                            <i class="fas fa-utensils"></i>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800">东北特色烧烤</h4>
+                                    </div>
+                                    <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-white space-y-2.5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户号</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">6022339911</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">开户时间</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">2023-12-01 18:30:00</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
+                                        <span class="text-[11px] font-medium text-gray-700 truncate">杭州市滨江区江汉路1515号</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Merchant Card 5: Restaurant -->
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer merchant-item" onclick="showMerchantDetail(this)">
+                                <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center text-sm shadow-md shadow-blue-500/20 border-2 border-white">
+                                            <i class="fas fa-utensils"></i>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800">老王家常菜</h4>
+                                    </div>
+                                    <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-white space-y-2.5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户号</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">6023778822</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">开户时间</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">2023-11-20 11:00:45</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
+                                        <span class="text-[11px] font-medium text-gray-700 truncate">杭州市上城区解放路108号</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Merchant Card 6: Convenience Store -->
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer merchant-item" onclick="showMerchantDetail(this)">
+                                <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center text-sm shadow-md shadow-blue-500/20 border-2 border-white">
+                                            <i class="fas fa-store"></i>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800">全家便利店</h4>
+                                    </div>
+                                    <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-white space-y-2.5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户号</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">6024556677</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">开户时间</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">2023-12-10 08:15:00</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
+                                        <span class="text-[11px] font-medium text-gray-700 truncate">杭州市余杭区文一西路999号</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Merchant Card 7: Drink Shop -->
+                            <div class="glass-panel rounded-xl overflow-hidden border-white bg-white relative group cursor-pointer merchant-item" onclick="showMerchantDetail(this)">
+                                <div class="bg-gradient-to-r from-blue-100/80 to-blue-100/50 py-2 px-3 flex items-center justify-between border-b border-blue-500/20">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-9 h-9 rounded-xl bg-blue-500 text-white flex items-center justify-center text-sm shadow-md shadow-blue-500/20 border-2 border-white">
+                                            <i class="fas fa-coffee"></i>
+                                        </div>
+                                        <h4 class="text-sm font-bold text-gray-800">蜜雪冰城</h4>
+                                    </div>
+                                    <div class="w-6 h-6 rounded-full bg-white/50 flex items-center justify-center">
+                                        <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
+                                    </div>
+                                </div>
+                                <div class="p-3 bg-white space-y-2.5">
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户号</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">6025990011</span>
+                                    </div>
+                                    <div class="flex items-center gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">开户时间</span>
+                                        <span class="text-[11px] font-medium text-gray-700 font-sans">2023-12-12 14:00:20</span>
+                                    </div>
+                                    <div class="flex items-start gap-3">
+                                        <span class="text-[11px] text-gray-500 w-14 shrink-0">商户地址</span>
+                                        <span class="text-[11px] font-medium text-gray-700 truncate">杭州市萧山区金城路123号</span>
                                     </div>
                                 </div>
                             </div>
@@ -1529,7 +1694,7 @@
             <!-- Actions -->
             <div class="flex gap-3 mt-8 pt-4 border-t border-gray-100">
                 <button onclick="resetFilters()" class="flex-1 py-3 rounded-xl bg-gray-50 text-gray-600 font-bold text-sm">重置</button>
-                <button onclick="toggleFilterModal()" class="flex-1 py-3 rounded-xl bg-postal text-white font-bold text-sm shadow-lg shadow-postal/30">确认筛选</button>
+                <button onclick="applyFilters()" class="flex-1 py-3 rounded-xl bg-postal text-white font-bold text-sm shadow-lg shadow-postal/30">确认筛选</button>
             </div>
         </div>
 
@@ -1688,6 +1853,18 @@
             });
             btn.classList.remove('text-gray-500', 'border-transparent');
             btn.classList.add('active', 'text-blue-600', 'border-blue-600');
+
+            // Update Stats
+            var isAssets = type === 'assets';
+            document.getElementById('stat-title-day').innerText = isAssets ? '本日净增' : '本日补贴';
+            document.getElementById('stat-title-month').innerText = isAssets ? '本月净增' : '本月补贴';
+            document.getElementById('stat-title-year').innerText = isAssets ? '本年净增' : '本年补贴';
+
+            // Mock Data Updates for better realism
+            document.getElementById('stat-value-day').innerText = isAssets ? '¥5203.2' : '¥1200.5';
+            document.getElementById('stat-value-month').innerText = isAssets ? '-¥112845.74' : '¥35000.00';
+            document.getElementById('stat-value-year').innerText = isAssets ? '¥132443.46' : '¥420000.00';
+
             updateAssetsChart(type);
         }
 
@@ -1738,6 +1915,13 @@
             });
             btn.classList.remove('text-gray-500', 'border-transparent');
             btn.classList.add('active', 'text-blue-600', 'border-blue-600');
+            
+            // Update Unit Label
+            var unitLabel = document.getElementById('transaction-unit');
+            if (unitLabel) {
+                unitLabel.innerText = type === 'amount' ? '单位：元' : '单位：笔';
+            }
+
             updateTransactionChart(type);
         }
 
@@ -1783,6 +1967,95 @@
         // without knowing if it was var or function declaration in previous script blocks (it was function),
         // we can just add a click listener to the body that delegates or use a MutationObserver.
         // Simplest: The user clicks something to open it.
+
+        function applyFilters() {
+            // 1. Close Modal
+            toggleFilterModal();
+            
+            // 2. Show Filter Result Bar
+            var bar = document.getElementById('filter-result-bar');
+            if(bar) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+            }
+
+            // 3. Update Count (Mock Logic)
+            // Let's pretend we filtered down to 3 items
+            var countEl = document.getElementById('filter-count');
+            if(countEl) countEl.innerText = '3';
+
+            // 4. Filter List (Mock Logic)
+            // Show only first 3 items, hide others
+            var list = document.getElementById('merchant-list-container');
+            if(list) {
+                var items = list.querySelectorAll('.merchant-item');
+                items.forEach((item, index) => {
+                    if(index < 3) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+            }
+        }
+
+        function clearFilterResults() {
+            // 1. Hide Filter Result Bar
+            var bar = document.getElementById('filter-result-bar');
+            if(bar) {
+                bar.classList.add('hidden');
+                bar.classList.remove('flex');
+            }
+
+            // 2. Show All Items
+            var list = document.getElementById('merchant-list-container');
+            if(list) {
+                var items = list.querySelectorAll('.merchant-item');
+                items.forEach(item => {
+                    item.classList.remove('hidden');
+                });
+            }
+        }
+
+        function jumpFromIndicator(filterName, count) {
+            // 1. Ensure we are on the Data Tab
+            switchTab('audit');
+
+            // 2. Switch to Merchant Sub-view
+            switchDataView('merchant');
+
+            // 3. Show Filter Result Bar
+            var bar = document.getElementById('filter-result-bar');
+            if(bar) {
+                bar.classList.remove('hidden');
+                bar.classList.add('flex');
+            }
+
+            // 4. Update Filter Description with Indicator Name
+            var resultTextContainer = bar.querySelector('.text-blue-600');
+            if (resultTextContainer) {
+                 resultTextContainer.innerHTML = `筛选结果：共 <span class="font-bold" id="filter-count">${count}</span> 条数据`;
+            }
+
+            // 5. Mock Filter List (Show 3 items)
+            var list = document.getElementById('merchant-list-container');
+            if(list) {
+                var items = list.querySelectorAll('.merchant-item');
+                items.forEach((item, index) => {
+                    if(index < 3) {
+                        item.classList.remove('hidden');
+                    } else {
+                        item.classList.add('hidden');
+                    }
+                });
+            }
+
+            // 6. Scroll to top
+            var tabContent = document.getElementById('tab-audit');
+            if (tabContent) {
+                tabContent.scrollTop = 0;
+            }
+        }
 
     </script>
 </body>
