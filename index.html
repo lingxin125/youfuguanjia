@@ -389,7 +389,7 @@
 
     <style>
         body {
-            font-family: 'Poppins', 'Noto Sans SC', sans-serif;
+            font-family: 'Noto Sans SC', system-ui, sans-serif;
             background-color: #ffffff;
             background-image: none;
             overflow: hidden;
@@ -422,15 +422,16 @@
 
         /* Mobile Container */
         .mobile-container {
-            width: 375px;
-            height: 812px;
+            width: min(440px, calc((100vh - 24px) * 440 / 956), calc(100vw - 24px));
+            aspect-ratio: 440 / 956;
+            height: auto;
             /* 深色渐变色 */
             /* background: #F0FDF4;
             background-image: linear-gradient(180deg, rgba(17, 166, 74, 0.25) 0%, rgba(240, 253, 244, 0.3) 100%); */
 
             /* 浅色渐变色 */
-            background: #F8FAFC; 
-            background-image: linear-gradient(180deg, rgba(76, 163, 84, 0.08) 0%, rgba(255, 255, 255, 0) 400px);
+            background: #F7F9F8;
+            background-image: radial-gradient(120% 60% at 50% -10%, rgba(17,166,74,.10) 0%, rgba(255,255,255,0) 60%);
             border-radius: 40px;
             border: 0;
             box-shadow: 
@@ -441,6 +442,54 @@
             display: flex;
             flex-direction: column;
         }
+
+        /* Reference prototype scale: body 12px, title 14-16px, key number 40-44px. */
+        #tab-home { font-family: 'Noto Sans SC', system-ui, sans-serif; }
+        #tab-notification, #tab-mine { font-family: 'Noto Sans SC', system-ui, sans-serif; }
+        #tab-home .text-\[9px\], #tab-home .text-\[10px\], #tab-home .text-\[11px\] { font-size: 12px !important; }
+        #tab-home .text-\[12px\] { font-size: 13px !important; }
+        #tab-notification .text-\[9px\], #tab-notification .text-\[10px\],
+        #tab-mine .text-\[9px\], #tab-mine .text-\[10px\], #tab-mine .text-\[11px\] { font-size: 12px !important; }
+        #tab-notification .text-\[11px\], #tab-notification .text-xs,
+        #tab-mine .text-xs { font-size: 13px !important; }
+        #tab-notification .notify-tab-btn { font-size: 16px !important; }
+        #tab-home .text-4xl { font-size: 44px !important; line-height: .95; }
+        .nav-btn > span { font-size: 11px !important; }
+        .home-workbench { background: #fff; border: 1px solid rgba(0,0,0,.05); border-radius: 18px; padding: 10px 12px 8px; box-shadow: 0 2px 12px rgba(0,0,0,.03); }
+        .metric-setting { color: #11A64A; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; padding: 4px 6px; }
+        .metric-cell { text-align:center; cursor:pointer; padding: 7px 5px; position:relative; border-radius: 12px; min-width:0; background:linear-gradient(180deg,#fff,#F7FAF8); border:1px solid #edf2ef; box-shadow:0 2px 6px rgba(24,96,60,.04); transition:transform .18s ease, border-color .18s ease, background .18s ease; }
+        .metric-cell:active { transform:scale(.97); border-color:rgba(17,166,74,.28); background:#F0FDF4; }
+        .metric-cell.no-value { min-height:58px; display:flex; align-items:center; justify-content:center; }
+        .metric-cell.no-value .metric-label { margin-bottom:0; }
+        #metric-grid { gap:8px; }
+        .metric-cell .metric-label { min-height:32px; display:flex; align-items:center; justify-content:center; font-size:12px; line-height:16px; color:#6b7280; margin-bottom:2px; white-space:normal; text-align:center; }
+        .metric-cell .metric-value { font:700 20px/1 'Poppins','Noto Sans SC',sans-serif; color:#1f2937; font-variant-numeric:tabular-nums; }
+        .metric-cell.alert .metric-value { color:#1f2937; }
+        .sheet-backdrop { position:absolute; inset:0; background:rgba(31,41,55,.42); z-index:80; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+        .sheet-backdrop.open { opacity:1; pointer-events:auto; }
+        .bottom-sheet { position:absolute; left:0; right:0; bottom:0; z-index:90; background:#fff; border-radius:28px 28px 0 0; padding:12px 16px 18px; transform:translateY(105%); visibility:hidden; pointer-events:none; transition:transform .3s ease, visibility 0s linear .3s; max-height:82%; overflow-y:auto; }
+        .bottom-sheet.open { transform:translateY(0); visibility:visible; pointer-events:auto; transition-delay:0s; }
+        .sheet-handle { width:40px; height:4px; border-radius:3px; background:#e5e7eb; margin:0 auto 16px; }
+        .indicator-chip { display:inline-flex; align-items:center; gap:6px; padding:7px 10px; margin:0 6px 8px 0; border-radius:9px; font-size:12px; border:1px solid #11A64A; background:#F0FDF4; color:#087A35; }
+        .indicator-chip button { color:#75c99a; line-height:1; }
+        .indicator-option { display:inline-flex; align-items:center; gap:4px; padding:8px 10px; margin:0 6px 8px 0; border-radius:9px; font-size:12px; background:#F3F4F6; color:#6b7280; }
+        .common-editing .common-item { outline:1px dashed #86d7aa; outline-offset:3px; }
+        .common-item { position:relative; }
+        .common-icon-wrap { width:48px; height:48px; display:flex; align-items:center; justify-content:center; color:#252A2D; transition:transform .2s ease, color .2s ease; }
+        .common-item:hover .common-icon-wrap { transform:translateY(-2px); }
+        .common-item:active .common-icon-wrap { transform:scale(.96); }
+        .common-icon { width:32px; height:32px; overflow:visible; }
+        .common-icon-main { fill:none; stroke:#30363A; stroke-width:2.2; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:10; }
+        .common-icon-accent { fill:none; stroke:#11A64A; stroke-width:2.35; stroke-linecap:round; stroke-linejoin:round; stroke-miterlimit:10; }
+        .common-icon-accent-fill { fill:#11A64A; stroke:none; }
+        .common-label { color:#303438; font-size:13px; line-height:18px; font-weight:500; white-space:nowrap; }
+        .mine-menu-icon { width:28px; height:28px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+        .mine-menu-icon svg { width:24px; height:24px; overflow:visible; }
+        .common-remove, .common-add { position:absolute; top:-7px; left:2px; width:18px; height:18px; border-radius:50%; font-size:12px; line-height:16px; text-align:center; background:#fff; border:1px solid #fca5a5; color:#ef4444; display:none; z-index:2; }
+        .common-add { border-color:#86d7aa; color:#16a34a; }
+        #common-edit-sheet .common-remove, #common-edit-sheet .common-add { display:block; }
+        .common-edit-page { position:absolute; inset:0; z-index:95; background:#F7F9F8; visibility:hidden; pointer-events:none; transform:translateX(100%); transition:transform .3s ease, visibility 0s linear .3s; overflow:hidden; display:flex; flex-direction:column; }
+        .common-edit-page.open { visibility:visible; pointer-events:auto; transform:translateX(0); transition-delay:0s; }
 
         /* Hide Scrollbar */
         .no-scrollbar::-webkit-scrollbar {
@@ -499,6 +548,8 @@
         .shadow-glass-up {
             box-shadow: 0 -4px 30px rgba(0,0,0,0.1);
         }
+        #filter-modal.translate-y-full { visibility: hidden; pointer-events: none; }
+        #filter-modal:not(.translate-y-full) { visibility: visible; pointer-events: auto; }
     </style>
 </head>
 <body>
@@ -507,7 +558,7 @@
     <div class="mobile-container">
         
         <!-- Status Bar -->
-        <div class="h-12 w-full flex justify-between items-end px-5 pb-2 z-50 select-none text-white font-medium text-sm bg-black">
+        <div class="h-12 w-full flex justify-between items-end px-5 pb-2 z-50 select-none text-gray-800 font-medium text-sm bg-transparent">
             <span>9:41</span>
             <div class="flex gap-2 items-center">
                 <i class="fas fa-signal text-xs"></i>
@@ -759,7 +810,16 @@
             <!-- ================= Tab 1: 首页 (Home) ================= -->
             <div id="tab-home" class="tab-content active no-scrollbar">
                 <!-- Header Section -->
-                <div class="px-4 pt-4 pb-4">
+                <div class="px-4 pt-3 pb-4">
+                    <!-- Identity row, matching the approved reference prototype. -->
+                    <div class="flex items-center gap-3 px-1 pb-3">
+                        <div class="w-[42px] h-[42px] rounded-full bg-gradient-to-br from-[#13B854] to-[#0D8A3D] text-white flex items-center justify-center font-bold text-base shadow-[0_2px_8px_rgba(17,166,74,.25)]">灵</div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-baseline gap-2"><span class="text-[16px] font-bold text-gray-800">灵心</span><span class="text-[13px] text-gray-500">184 3514 1411</span></div>
+                            <div class="flex items-center gap-1 mt-1 text-[12px] text-gray-500 truncate"><i class="fas fa-building text-[11px] text-postal"></i>镇江市三山营业所</div>
+                        </div>
+                        <button class="h-9 px-3 rounded-full border border-postal/50 text-postal bg-white/60 text-[13px] font-semibold flex items-center gap-1"><i class="fas fa-headset"></i>客服</button>
+                    </div>
                     
 
                     <!-- Alert Banner -->
@@ -773,61 +833,59 @@
                         <i class="fas fa-times text-gray-400 text-xs mr-4"></i>
                     </div>
 
-                    <!-- Waterfall / Masonry Layout for Core Features (Weighted) -->
-                    <div class="flex gap-3 mb-6">
+                    <!-- Primary onboarding card -->
+                    <div class="mb-3">
                         
                         <!-- Left Column (Most Important: Incoming Account Opening) -->
-                        <div class="w-[55%] flex flex-col gap-3">
+                        <div class="w-full flex flex-col gap-3">
                             <!-- Incoming Account Opening (Tall Card) -->
-                            <div class="backdrop-blur-xl border border-gray-100 shadow-sm rounded-2xl p-4 relative overflow-hidden group animate-float hover:shadow-glow transition-shadow cursor-pointer h-full flex flex-col bg-white min-h-[220px]" title="进入引荐开户">
-                                <!-- Header: Icon & Tag -->
-                                <div class="flex justify-between items-start mb-2">
-                                    <div class="w-10 h-10 rounded-xl bg-postal/10 text-postal flex items-center justify-center shadow-sm">
-                                        <i class="fas fa-user-plus text-sm"></i>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <span class="text-[9px] font-bold text-postal bg-postal/5 px-2 py-1 rounded-full border border-postal/10 inline-flex items-center gap-1 h-fit" title="进入引荐开户" aria-label="进入引荐开户">
-                                            极速进件
-                                            <i class="fas fa-chevron-right text-[9px]"></i>
-                                        </span>
-                                    </div>
+                            <div class="border border-postal/20 rounded-2xl px-4 py-3 relative overflow-hidden cursor-pointer bg-gradient-to-b from-white to-[#F6FBF7] shadow-[0_8px_24px_rgba(17,166,74,.08)]" title="进入引荐开户">
+                                <i class="fas fa-id-card absolute -right-4 top-8 text-[88px] text-postal opacity-[.055] -rotate-12 pointer-events-none"></i>
+                                <div class="flex justify-between items-center mb-3 relative z-10">
+                                    <h2 class="text-[16px] font-bold text-gray-800 flex items-center gap-2"><span class="w-1 h-4 bg-postal rounded-full"></span>引荐开户概览</h2>
+                                    <span id="report-date" class="text-[12px] text-postal bg-postal/10 border border-postal/20 rounded-full px-3 py-1 font-medium">2026-08-29</span>
                                 </div>
-
-                                <!-- Title & Description -->
-                                <div class="mb-3">
-                                    <h2 class="text-lg font-bold text-gray-800">引荐开户</h2>
-                                    <p class="text-[11px] text-gray-600 mt-0.5 leading-tight">快速协助新商户入网</p>
-                                </div>
-                                
-                                <!-- Central "Today" Box -->
-                                <div class="bg-gray-50 rounded-xl p-3 border border-gray-100 flex flex-col items-center justify-center flex-1 mb-3 relative z-10">
-                                    <span class="text-[10px] font-medium text-gray-600 mb-0.5">今日进件</span>
-                                    <span class="text-4xl font-bold text-postal tracking-tight">12</span>
-                                </div>
-
-                                <!-- Bottom Row: Month & Year -->
-                                <div class="flex justify-between items-center px-2 relative z-10">
-                                    <div class="flex flex-col items-center flex-1">
-                                            <span class="text-[9px] text-gray-500 mb-0.5">本月累计进件</span>
-                                            <span class="text-sm font-bold text-gray-700">156</span>
+                                <div class="grid grid-cols-[1.4fr_1fr_1fr] gap-3 items-end relative z-10">
+                                    <div>
+                                        <div class="text-[12px] text-gray-500 mb-1">今日</div>
+                                        <div class="text-[44px] leading-none font-bold text-postal tabular-nums">12</div>
                                     </div>
-                                    <div class="w-px h-6 bg-gray-300/50"></div>
-                                    <div class="flex flex-col items-center flex-1">
-                                            <span class="text-[9px] text-gray-500 mb-0.5">本年累计进件</span>
-                                            <span class="text-sm font-bold text-gray-700">1,204</span>
+                                    <div>
+                                        <div class="text-[11px] text-gray-500 mb-1 whitespace-nowrap">本月累计</div>
+                                        <div class="text-[19px] leading-none font-bold text-gray-800 tabular-nums whitespace-nowrap">12,356</div>
+                                    </div>
+                                    <div>
+                                        <div class="text-[11px] text-gray-500 mb-1 whitespace-nowrap">本年累计</div>
+                                        <div class="text-[19px] leading-none font-bold text-gray-800 tabular-nums whitespace-nowrap">124,680</div>
                                     </div>
                                 </div>
-
-                                <!-- Decorative Icon -->
-                                <div class="absolute -right-4 top-20 opacity-10 text-postal text-7xl transform -rotate-12 pointer-events-none">
-                                    <i class="fas fa-id-card"></i>
+                                <div class="mt-4 h-12 rounded-full bg-gradient-to-br from-[#13B854] to-[#0D8A3D] flex items-center justify-center gap-3 text-white text-[16px] font-bold tracking-wide shadow-[0_6px_16px_rgba(17,166,74,.28)] relative z-10">
+                                    <i class="fas fa-user-plus text-sm"></i>引荐开户<i class="fas fa-chevron-right text-xs absolute right-5"></i>
                                 </div>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- Right Column (Secondary: Merchant & Transaction) -->
-                        <div class="w-[45%] flex flex-col gap-3">
-                            
+                    <!-- Workbench metrics -->
+                    <div class="home-workbench mb-4">
+                        <div class="flex items-center justify-between mb-2"><h3 class="text-[16px] font-bold text-gray-800 flex items-center gap-2"><span class="w-1 h-4 bg-postal rounded-full"></span>工作台</h3><button class="metric-setting" onclick="openMetricSheet()"><i class="fas fa-gear"></i>设置指标</button></div>
+                        <div id="metric-grid" class="grid grid-cols-3"></div>
+                    </div>
+
+                    <!-- Functional Grid (Common Functions) -->
+                    <div class="flex items-center justify-between mb-3 px-1">
+                        <h3 class="text-[16px] font-bold text-gray-800 flex items-center gap-2"><span class="w-1 h-4 bg-postal rounded-full"></span>常用功能</h3>
+                        <button class="text-[12px] text-postal font-medium flex items-center gap-1 px-1" onclick="toggleCommonEdit()"><i class="fas fa-pen text-[11px]"></i><span id="common-edit-label">编辑</span></button>
+                    </div>
+                    <div id="common-grid" class="grid grid-cols-4 gap-y-5 gap-x-2"></div>
+
+                    <div id="common-more-panel" class="hidden mt-4 pt-3 border-t border-gray-100">
+                        <div class="text-[12px] font-bold text-gray-700 mb-3">全部功能</div>
+                        <div id="common-more-grid" class="grid grid-cols-4 gap-y-5 gap-x-2"></div>
+                    </div>
+
+                    <!-- Legacy feature markup retained below in source history was replaced by data-driven grid. -->
+                    <div class="hidden">
                             <!-- Merchant Management -->
                             <div class="backdrop-blur-xl border border-gray-100 shadow-sm rounded-2xl p-2.5 flex flex-col justify-between h-[48%] relative overflow-hidden cursor-pointer hover:shadow-md transition-all bg-white" title="进入商户管理">
                                 <div class="flex items-center gap-2 mb-1">
@@ -899,10 +957,9 @@
                             </div>
 
                         </div>
-                    </div>
 
                     <!-- Functional Grid (Common Functions) -->
-                    <div class="flex items-center justify-between mb-4 px-1">
+                    <div class="hidden">
                         <h3 class="text-sm font-bold text-gray-800 flex items-center gap-2">
                             <span class="w-1 h-4 bg-postal rounded-full"></span>
                             常用功能
@@ -910,7 +967,7 @@
                         <!-- <button class="text-[10px] text-gray-400 hover:text-postal">编辑</button> -->
                     </div>
                     
-                    <div class="grid grid-cols-4 gap-y-5 gap-x-2">
+                    <div class="hidden">
 
                         <!-- Priority Entry: Incoming Account Opening -->
                         <div class="flex flex-col items-center gap-1.5 group cursor-pointer" data-priority-entry="onboarding" title="进入引荐开户">
@@ -1618,7 +1675,9 @@
                         <div class="glass-panel rounded-xl overflow-hidden">
                             <div class="p-3.5 flex items-center justify-between border-b border-gray-100 cursor-pointer hover:bg-white/50">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-7 h-7 rounded-lg bg-postal/10 text-postal flex items-center justify-center text-xs"><i class="fas fa-key"></i></div>
+                                    <div class="mine-menu-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 32 32"><circle class="common-icon-main" cx="11" cy="13" r="6"/><path class="common-icon-main" d="m15.5 17.5 10 10M21 23l3-3M24 26l3-3"/><circle class="common-icon-accent-fill" cx="11" cy="13" r="2.2"/></svg>
+                                    </div>
                                     <span class="text-xs font-medium text-gray-700">修改密码</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
@@ -1632,7 +1691,9 @@
                             </div> -->
                             <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/50">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-7 h-7 rounded-lg bg-yellow-50 text-yellow-500 flex items-center justify-center text-xs"><i class="fas fa-headset"></i></div>
+                                    <div class="mine-menu-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 32 32"><path class="common-icon-main" d="M6 17v-2a10 10 0 0 1 20 0v2M6 17v5h5v-7H8M26 17v5h-5v-7h3M21 26h-5"/><circle class="common-icon-accent-fill" cx="13" cy="26" r="2"/></svg>
+                                    </div>
                                     <span class="text-xs font-medium text-gray-700">联系客服</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
@@ -1642,7 +1703,9 @@
                         <div class="glass-panel rounded-xl overflow-hidden">
                              <div class="p-3.5 flex items-center justify-between cursor-pointer hover:bg-white/50">
                                 <div class="flex items-center gap-3">
-                                    <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center text-xs"><i class="fas fa-info-circle"></i></div>
+                                    <div class="mine-menu-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 32 32"><circle class="common-icon-main" cx="16" cy="16" r="11"/><path class="common-icon-main" d="M16 14v8"/><circle class="common-icon-accent-fill" cx="16" cy="9.5" r="2"/></svg>
+                                    </div>
                                     <span class="text-xs font-medium text-gray-700">关于我们</span>
                                 </div>
                                 <i class="fas fa-chevron-right text-gray-400 text-[10px]"></i>
@@ -1728,6 +1791,36 @@
             </div>
         </div>
 
+        <!-- Metric settings bottom sheet -->
+        <div id="metric-sheet-backdrop" class="sheet-backdrop" onclick="closeMetricSheet()"></div>
+        <section id="metric-sheet" class="bottom-sheet" aria-label="设置首页指标">
+            <div class="sheet-handle"></div>
+            <div class="flex items-center justify-between mb-4"><h2 class="text-[16px] font-bold text-gray-800">设置首页指标</h2><span class="text-[12px] text-gray-400">最多展示 6 个</span></div>
+            <div class="text-[13px] font-bold text-gray-800 mb-2">已选指标 <span id="selected-count" class="font-normal text-gray-400">3/6</span></div>
+            <div id="selected-indicators" class="mb-3"></div>
+            <div class="text-[13px] font-bold text-gray-800 mb-2">指标库</div>
+            <div id="indicator-library" class="mb-4"></div>
+            <div class="flex gap-3 pt-3 border-t border-gray-100"><button class="flex-1 h-11 rounded-xl bg-gray-100 text-gray-600 text-[14px] font-bold" onclick="resetMetricSelection()">恢复默认</button><button class="flex-1 h-11 rounded-xl bg-postal text-white text-[14px] font-bold" onclick="saveMetricSelection()">保存</button></div>
+        </section>
+
+        <!-- Common functions full-screen edit page -->
+        <section id="common-edit-sheet" class="common-edit-page" aria-label="编辑常用功能">
+            <div class="h-12 px-5 pb-2 flex justify-between items-end text-gray-800 text-sm font-medium"><span>9:41</span><span class="flex gap-2 text-xs"><i class="fas fa-signal"></i><i class="fas fa-wifi"></i><i class="fas fa-battery-full"></i></span></div>
+            <header class="h-12 px-4 flex items-center justify-center relative bg-white/70 border-b border-gray-100"><button class="absolute left-4 text-[13px] text-gray-500" onclick="closeCommonEdit()">取消</button><h2 class="text-[16px] font-bold text-gray-800">编辑常用功能</h2></header>
+            <div class="flex-1 overflow-y-auto p-4 pb-24">
+                <p class="text-[12px] text-postal bg-postal/5 border border-postal/15 rounded-lg px-3 py-2 mb-4"><i class="fas fa-info-circle mr-1"></i>长按拖动排序，最多添加 8 个常用功能</p>
+                <div class="bg-white rounded-2xl p-4 mb-4 shadow-[0_2px_10px_rgba(0,0,0,.03)]">
+                    <div class="text-[13px] font-bold text-gray-800 mb-3">已添加 <span id="common-selected-count" class="font-normal text-gray-400">0/8</span></div>
+                    <div id="common-selected-list" class="grid grid-cols-4 gap-y-5 gap-x-2"></div>
+                </div>
+                <div class="bg-white rounded-2xl p-4 shadow-[0_2px_10px_rgba(0,0,0,.03)]">
+                    <div class="text-[13px] font-bold text-gray-800 mb-3">更多功能</div>
+                    <div id="common-library-list" class="grid grid-cols-4 gap-y-5 gap-x-2"></div>
+                </div>
+            </div>
+            <div class="absolute bottom-0 inset-x-0 p-4 bg-white border-t border-gray-100"><button class="w-full h-12 rounded-xl bg-postal text-white text-[15px] font-bold shadow-[0_6px_16px_rgba(17,166,74,.22)]" onclick="saveCommonEdit()">保存</button></div>
+        </section>
+
         <!-- Bottom Tab Bar (Fixed) -->
         <div class="h-[72px] bg-white absolute bottom-0 w-full z-50 flex items-center justify-around pb-4 px-2 border-t border-gray-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)]">
             <!-- Home Tab -->
@@ -1773,6 +1866,77 @@
     </div>
 
     <script>
+        const metricCatalog = [
+            {label:'审核驳回商户', value:'5'}, {label:'待签约商户', value:'8'}, {label:'复审驳回商户', value:'3'},
+            {label:'待处理预警', value:'5', alert:true}, {label:'商户总数', value:'262'}, {label:'活跃商户', value:'44'},
+            {label:'本日交易商户', value:'34'}, {label:'本月交易商户', value:'76'}, {label:'潜力商户', value:'107'},
+            {label:'本年交易商户', value:'124'}, {label:'一星商户', value:'86'}, {label:'二星商户', value:'53'},
+            {label:'三星及以上', value:'23'}, {label:'本日交易金额', value:'¥12,345'}, {label:'本月交易金额', value:'¥123,456'},
+            {label:'智慧场景商户', value:'18'}, {label:'新增总资产', value:'¥86.2万'}
+        ];
+        let selectedMetricLabels = ['审核驳回商户', '待签约商户', '复审驳回商户'];
+        const commonCatalog = [
+            {icon:'merchant',label:'商户管理'}, {icon:'qrcode',label:'码牌设备'}, {icon:'tasks',label:'任务管理'},
+            {icon:'chart',label:'交易统计'}, {icon:'rate',label:'费率政策'}, {icon:'audit',label:'审核中心'},
+            {icon:'ticket',label:'工单管理'}, {icon:'marketing',label:'营销小工具'}, {icon:'shop',label:'门店管理'},
+            {icon:'statement',label:'对账单'}, {icon:'service',label:'联系客服'}
+        ];
+        let selectedCommonLabels = ['商户管理','码牌设备','任务管理','交易统计','费率政策','审核中心','工单管理'];
+        let commonExpanded = false;
+
+        function renderMetrics() {
+            const grid = document.getElementById('metric-grid'); if (!grid) return;
+            grid.innerHTML = selectedMetricLabels.map(label => { const m=metricCatalog.find(x=>x.label===label); const count=parseInt(String(m.value).replace(/\D/g,''),10)||0; const valueHtml=m.showValue===false?'':`<div class="metric-value">${m.value}</div>`; return `<div class="metric-cell${m.showValue===false?' no-value':''}" title="查看${m.label}" onclick="jumpFromIndicator('${m.label}',${count})"><div class="metric-label">${m.label}</div>${valueHtml}</div>`; }).join('');
+        }
+        function openMetricSheet() { renderMetricSheet(); document.getElementById('metric-sheet').classList.add('open'); document.getElementById('metric-sheet-backdrop').classList.add('open'); }
+        function closeMetricSheet() { document.getElementById('metric-sheet').classList.remove('open'); document.getElementById('metric-sheet-backdrop').classList.remove('open'); }
+        function renderMetricSheet() {
+            document.getElementById('selected-count').textContent = `${selectedMetricLabels.length}/6`;
+            document.getElementById('selected-indicators').innerHTML = selectedMetricLabels.map(label=>`<span class="indicator-chip">${label}<button onclick="removeMetric('${label}')">×</button></span>`).join('');
+            document.getElementById('indicator-library').innerHTML = metricCatalog.filter(m=>!selectedMetricLabels.includes(m.label)).map(m=>`<button class="indicator-option" onclick="addMetric('${m.label}')"><i class="fas fa-plus"></i>${m.label}</button>`).join('');
+        }
+        function addMetric(label) { if (selectedMetricLabels.length >= 6) return; selectedMetricLabels.push(label); renderMetricSheet(); }
+        function removeMetric(label) { if (selectedMetricLabels.length <= 1) return; selectedMetricLabels = selectedMetricLabels.filter(x=>x!==label); renderMetricSheet(); }
+        function resetMetricSelection() { selectedMetricLabels = ['审核驳回商户','待签约商户','复审驳回商户']; renderMetricSheet(); }
+        function saveMetricSelection() { renderMetrics(); closeMetricSheet(); }
+        function commonIconSvg(type) {
+            const icons = {
+                merchant: `<path class="common-icon-main" d="M5 13h22l-2-6H7l-2 6Z"/><path class="common-icon-main" d="M7 13v12h18V13M11 25v-7h6v7"/><path class="common-icon-accent" d="M5 13c0 2 3 2.8 4.5.8S14 15 16 13.8c2 1.2 5 1.2 6.5 0S27 15 27 13"/>`,
+                qrcode: `<path class="common-icon-main" d="M5.5 5.5h7v7h-7zM19.5 5.5h7v7h-7zM5.5 19.5h7v7h-7zM19.5 19.5h3v3h-3zM25 19.5h1.5v5M19.5 25.5h5M27 27h-2"/><path class="common-icon-accent" d="M8 8h2v2H8zM22 8h2v2h-2zM8 22h2v2H8z"/>`,
+                tasks: `<path class="common-icon-main" d="M11 7h15M11 16h15M11 25h15"/><path class="common-icon-accent" d="m4.5 7 2 2 3-4M4.5 16l2 2 3-4M4.5 25l2 2 3-4"/>`,
+                chart: `<path class="common-icon-main" d="M15 5a11 11 0 1 0 11 11H15V5Z"/><path class="common-icon-accent" d="M19 4.8A9.2 9.2 0 0 1 27.2 13H19V4.8Z"/>`,
+                rate: `<circle class="common-icon-main" cx="9" cy="9" r="3"/><circle class="common-icon-main" cx="23" cy="23" r="3"/><path class="common-icon-main" d="m7 25 18-18"/><circle class="common-icon-accent-fill" cx="23" cy="9" r="2.2"/>`,
+                audit: `<rect class="common-icon-main" x="6" y="7" width="20" height="20" rx="4"/><path class="common-icon-main" d="M11 7V5h10v2M11 14h10M11 19h6"/><path class="common-icon-accent" d="m19 22 2 2 4-5"/>`,
+                ticket: `<path class="common-icon-main" d="M7 9h18a2 2 0 0 1 2 2v3a3.5 3.5 0 0 0 0 7v3a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-3a3.5 3.5 0 0 0 0-7v-3a2 2 0 0 1 2-2Z"/><path class="common-icon-main" d="M15 9v4M15 21v5"/><path class="common-icon-accent" d="M20 14h3M20 18h3"/>`,
+                marketing: `<path class="common-icon-main" d="M6.5 12.5h6.2l8.8-4.2a1.2 1.2 0 0 1 1.7 1.1v13.2a1.2 1.2 0 0 1-1.7 1.1l-8.8-4.2H6.5a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2Z"/><path class="common-icon-main" d="m9.5 19.5 1.8 6h3.4l-1.4-5.5"/><path class="common-icon-accent" d="M26 12.5c1.4 1 2.1 2.4 2.1 4.1s-.7 3.1-2.1 4.1"/>`,
+                shop: `<path class="common-icon-main" d="M6.5 12.5h19a1.5 1.5 0 0 1 1.5 1.5v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V14a1.5 1.5 0 0 1 1.5-1.5Z"/><path class="common-icon-main" d="M5 13.5 7.2 7h17.6l2.2 6.5"/><path class="common-icon-accent" d="M5.5 13.5c.4 2 1.7 3 3.7 3s3.3-1 3.7-3c.4 2 1.7 3 3.7 3s3.3-1 3.7-3c.4 2 1.7 3 3.7 3s3.3-1 3.7-3"/><path class="common-icon-main" d="M11 26v-7h10v7"/>`,
+                statement: `<path class="common-icon-main" d="M9 4.5h14a2.5 2.5 0 0 1 2.5 2.5v17.5a2.5 2.5 0 0 1-2.5 2.5H9a2.5 2.5 0 0 1-2.5-2.5V7A2.5 2.5 0 0 1 9 4.5Z"/><path class="common-icon-main" d="M11.5 10h9M11.5 15h9M11.5 20h5"/><path class="common-icon-accent" d="M20.5 24h2"/>`,
+                service: `<path class="common-icon-main" d="M6 17v-2a10 10 0 0 1 20 0v2M6 17v5h5v-7H8M26 17v5h-5v-7h3M21 26h-5"/><circle class="common-icon-accent-fill" cx="13" cy="26" r="2"/>`,
+                more: `<rect class="common-icon-main" x="5" y="5" width="8" height="8" rx="2.5"/><rect class="common-icon-main" x="19" y="5" width="8" height="8" rx="2.5"/><rect class="common-icon-main" x="5" y="19" width="8" height="8" rx="2.5"/><rect class="common-icon-accent" x="19" y="19" width="8" height="8" rx="2.5"/>`,
+                collapse: `<path class="common-icon-main" d="m8 20 8-8 8 8"/><path class="common-icon-accent" d="M9 25h14"/>`
+            };
+            return `<svg class="common-icon" viewBox="0 0 32 32" aria-hidden="true">${icons[type] || icons.more}</svg>`;
+        }
+        function commonItemHtml(item, editing, selected) { const action=editing?(selected?`<button class="common-remove" onclick="event.stopPropagation();removeCommon('${item.label}')">−</button>`:`<button class="common-add" onclick="event.stopPropagation();addCommon('${item.label}')">+</button>`):''; const drag=editing&&selected?`draggable="true" ondragstart="startCommonDrag(event,'${item.label}')" ondragover="event.preventDefault()" ondrop="dropCommon(event,'${item.label}')" onpointerdown="startCommonPointer(event,'${item.label}')"`:''; return `<div class="common-item flex flex-col items-center gap-1.5 group cursor-pointer" data-label="${item.label}" ${drag} ${!editing&&item.label==='营销小工具'?'onclick="window.location.href=\'marketing_tools.html\'"':''}>${action}<div class="common-icon-wrap">${commonIconSvg(item.icon)}</div><span class="common-label">${item.label}</span></div>`; }
+        function renderCommonGrid() { const grid=document.getElementById('common-grid'); if(!grid) return; const items=commonExpanded?commonCatalog:selectedCommonLabels.slice(0,7); grid.innerHTML=items.map(item=>commonItemHtml(typeof item==='string'?commonCatalog.find(x=>x.label===item):item,false,true)).join('') + `<div class="common-item flex flex-col items-center gap-1.5 group cursor-pointer" onclick="toggleCommonMore()"><div class="common-icon-wrap">${commonIconSvg(commonExpanded?'collapse':'more')}</div><span class="common-label">${commonExpanded?'收起':'更多'}</span></div>`; }
+        function toggleCommonMore() { commonExpanded=!commonExpanded; renderCommonGrid(); }
+        function toggleCommonEdit() { const mobile=document.querySelector('.mobile-container'); if(mobile) mobile.scrollTop=0; renderCommonEdit(); document.getElementById('common-edit-sheet').classList.add('open'); }
+        function closeCommonEdit() { document.getElementById('common-edit-sheet').classList.remove('open'); }
+        function renderCommonEdit() { document.getElementById('common-selected-count').textContent=`${selectedCommonLabels.length}/8`; document.getElementById('common-selected-list').innerHTML=selectedCommonLabels.map(l=>commonItemHtml(commonCatalog.find(x=>x.label===l),true,true)).join(''); document.getElementById('common-library-list').innerHTML=commonCatalog.filter(x=>!selectedCommonLabels.includes(x.label)).map(x=>commonItemHtml(x,true,false)).join(''); }
+        function addCommon(label) { if(selectedCommonLabels.length>=8)return; selectedCommonLabels.push(label); renderCommonEdit(); }
+        function removeCommon(label) { selectedCommonLabels=selectedCommonLabels.filter(x=>x!==label); renderCommonEdit(); }
+        let draggedCommonLabel = null;
+        let commonPointerTimer = null;
+        let commonPointerDragging = false;
+        function startCommonDrag(event,label) { draggedCommonLabel=label; event.dataTransfer.effectAllowed='move'; }
+        function dropCommon(event,targetLabel) { event.preventDefault(); if(!draggedCommonLabel||draggedCommonLabel===targetLabel)return; const from=selectedCommonLabels.indexOf(draggedCommonLabel); const to=selectedCommonLabels.indexOf(targetLabel); const next=[...selectedCommonLabels]; next.splice(from,1); next.splice(to,0,draggedCommonLabel); selectedCommonLabels=next; draggedCommonLabel=null; renderCommonEdit(); }
+        function startCommonPointer(event,label) { clearTimeout(commonPointerTimer); commonPointerTimer=setTimeout(()=>{ draggedCommonLabel=label; commonPointerDragging=true; event.currentTarget.classList.add('opacity-60'); },350); }
+        document.addEventListener('pointermove', event => { if(!commonPointerDragging)return; const target=document.elementFromPoint(event.clientX,event.clientY)?.closest('#common-selected-list .common-item'); if(target&&target.dataset.label!==draggedCommonLabel) dropCommon(event,target.dataset.label); });
+        document.addEventListener('pointerup', () => { clearTimeout(commonPointerTimer); commonPointerDragging=false; draggedCommonLabel=null; document.querySelectorAll('#common-selected-list .common-item').forEach(x=>x.classList.remove('opacity-60')); });
+        function saveCommonEdit() { renderCommonGrid(); closeCommonEdit(); }
+
+        document.addEventListener('DOMContentLoaded', () => { const now=new Date(); const date=document.getElementById('report-date'); if(date) date.textContent=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`; renderMetrics(); renderCommonGrid(); });
+
         // Notification Sub-tab Switcher
         function switchNotifyTab(type, btnElement) {
             // 1. Reset all buttons
